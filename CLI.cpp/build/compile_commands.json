@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/jason/Projects/Nebula/CLI.cpp/build",
+  "command": "/bin/c++    -g   -o CMakeFiles/NebulaCLI.dir/main.cpp.o -c /home/jason/Projects/Nebula/CLI.cpp/main.cpp",
+  "file": "/home/jason/Projects/Nebula/CLI.cpp/main.cpp"
+}
+]

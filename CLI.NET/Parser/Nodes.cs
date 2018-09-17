@@ -1,7 +1,21 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CLI.NET.Parser
 {
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    public class ChildAttribute : Attribute
+    {
+        public string Name { get; set; }
+        public bool IsArray { get; set; }
+        public ChildAttribute(string name, bool isArray)
+        {
+            Name = name;
+            IsArray = isArray;
+        }
+    }
+    
     public class AstNode
     {
         public string Type { get; set; }
@@ -12,6 +26,54 @@ namespace CLI.NET.Parser
         {
             Type = type;
             Exported = false;
+        }
+
+        private void SearchChildren<T>(object o, List<T> results)
+        {
+            // start recursive search of child elements
+            var t = o.GetType();
+            var attributes = t.GetCustomAttributes(true);
+            foreach (var attribute in attributes.OfType<ChildAttribute>())
+            {
+                var childProperty = t.GetProperty(attribute.Name);
+                if (childProperty != null)
+                {
+                    var children = childProperty.GetValue(o);
+                    if (attribute.IsArray && typeof(IEnumerable<AstNode>).IsAssignableFrom(childProperty.PropertyType))
+                    {
+                        var get = childProperty.GetGetMethod();
+                        var collection = (IEnumerable<AstNode>)get.Invoke(o, null);
+                        foreach (var obj in collection)
+                        {
+                            SearchChildren<T>(obj, results);
+                        }
+                    }
+                    else
+                    {
+                        var get = childProperty.GetGetMethod();
+                        var obj = (AstNode)get.Invoke(o, null);
+                        SearchChildren(obj, results);
+                    }
+                }
+            }
+
+            // check the properties of this type for the desired type
+            foreach (var prop in t.GetProperties())
+            {
+                if (typeof(T).IsAssignableFrom(prop.PropertyType))
+                {
+                    results.Add((T)prop.GetValue(o));
+                }
+            }
+        }
+
+        public List<T> SearchByType<T>() where T : AstNode
+        {
+            var results = new List<T>();
+            
+            SearchChildren<T>(this, results);
+
+            return results;
         }
     }
 
@@ -51,6 +113,7 @@ namespace CLI.NET.Parser
         }
     }
 
+    [Child("Variables", true), Child("Body", false)]
     public class LambdaNode<T> : AstNode where T : AstNode
     {
         public List<T> Variables { get; set; }
@@ -101,6 +164,7 @@ namespace CLI.NET.Parser
         }
     }
 
+    [Child("Api", true)]
     public class ApiNode : AstNode
     {
         public string Name { get; set; }
@@ -123,6 +187,7 @@ namespace CLI.NET.Parser
         }
     }
 
+    [Child("Elements", true)]
     public class ModuleNode : AstNode
     {
         public string Name { get; set; }
@@ -145,6 +210,7 @@ namespace CLI.NET.Parser
         }
     }
 
+    [Child("Args", true)]
     public class FunctionNode : AstNode
     {
         public string Name { get; set; }
@@ -171,6 +237,7 @@ namespace CLI.NET.Parser
         }
     }
 
+    [Child("Fields", true)]
     public class EntityNode : AstNode
     {
         public string Name { get; set; }
@@ -193,6 +260,7 @@ namespace CLI.NET.Parser
         }
     }
 
+    [Child("Nodes", true)]
     public class ConfigNode : AstNode
     {
         public List<KeyValueNode> Nodes { get; set; }
@@ -202,6 +270,7 @@ namespace CLI.NET.Parser
         }
     }
 
+    [Child("Modules", true)]
     public class ProjectNode : AstNode
     {
         public List<ModuleNode> Modules { get; set; }

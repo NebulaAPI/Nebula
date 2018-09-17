@@ -58,7 +58,7 @@ keywords:
 
 Model example (Product.neb):
 ```
-export model Proudct {
+export entity Proudct {
     name: string,
     price: double,
     quantity: integer,
@@ -67,7 +67,7 @@ export model Proudct {
     priceHistory: array[PriceHistory]
 }
 
-model PriceHistory {
+entity PriceHistory {
     date: datetime,
     price: double
 }
