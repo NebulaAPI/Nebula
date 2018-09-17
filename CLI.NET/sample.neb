@@ -1,0 +1,21 @@
+api ProductService {
+    config {
+        host = "https://someapi.somedomain.com"
+        prefix = "/api"
+    }
+
+    # GET style API calls
+    # 1.         2. 3.        4. 5.             6. 7.
+    func getProducts() << "/products" -> array[Product] :: SomeException
+
+    func getProductById(id: integer) << "/product/{id}" -> Product
+
+    # POST style API calls
+    func createProduct(id: integer, p: Product) >> "/product/{id}" -> boolean
+
+    # PUT style API calls
+    func updateProduct(id: integer, p: Product) >| "/product/{id}" -> boolean
+
+    # DELETE style API calls
+    func deleteProduct(id: integer) >< "/product/{id}" -> boolean
+}
