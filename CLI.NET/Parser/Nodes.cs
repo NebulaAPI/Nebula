@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace CLI.NET.Parser
 {
@@ -8,11 +9,9 @@ namespace CLI.NET.Parser
     public class ChildAttribute : Attribute
     {
         public string Name { get; set; }
-        public bool IsArray { get; set; }
-        public ChildAttribute(string name, bool isArray)
+        public ChildAttribute(string name)
         {
             Name = name;
-            IsArray = isArray;
         }
     }
     
@@ -28,6 +27,12 @@ namespace CLI.NET.Parser
             Exported = false;
         }
 
+        private T GetPropertyValue<T>(object o, PropertyInfo prop)
+        {
+            var get = prop.GetGetMethod();
+            return (T)get.Invoke(o, null);
+        }
+
         private void SearchChildren<T>(object o, List<T> results)
         {
             // start recursive search of child elements
@@ -38,11 +43,9 @@ namespace CLI.NET.Parser
                 var childProperty = t.GetProperty(attribute.Name);
                 if (childProperty != null)
                 {
-                    var children = childProperty.GetValue(o);
-                    if (attribute.IsArray && typeof(IEnumerable<AstNode>).IsAssignableFrom(childProperty.PropertyType))
+                    if (typeof(IEnumerable<AstNode>).IsAssignableFrom(childProperty.PropertyType))
                     {
-                        var get = childProperty.GetGetMethod();
-                        var collection = (IEnumerable<AstNode>)get.Invoke(o, null);
+                        var collection = GetPropertyValue<IEnumerable<AstNode>>(o, childProperty);
                         foreach (var obj in collection)
                         {
                             SearchChildren<T>(obj, results);
@@ -50,21 +53,18 @@ namespace CLI.NET.Parser
                     }
                     else
                     {
-                        var get = childProperty.GetGetMethod();
-                        var obj = (AstNode)get.Invoke(o, null);
+                        var obj = GetPropertyValue<AstNode>(o, childProperty);
                         SearchChildren(obj, results);
                     }
                 }
             }
 
             // check the properties of this type for the desired type
-            foreach (var prop in t.GetProperties())
-            {
-                if (typeof(T).IsAssignableFrom(prop.PropertyType))
-                {
-                    results.Add((T)prop.GetValue(o));
-                }
-            }
+            results.AddRange(
+                t.GetProperties()
+                    .Where(p => typeof(T).IsAssignableFrom(p.PropertyType))
+                    .Select(p => (T)p.GetValue(o))
+            );
         }
 
         public List<T> SearchByType<T>() where T : AstNode
@@ -113,7 +113,7 @@ namespace CLI.NET.Parser
         }
     }
 
-    [Child("Variables", true), Child("Body", false)]
+    [Child("Variables"), Child("Body")]
     public class LambdaNode<T> : AstNode where T : AstNode
     {
         public List<T> Variables { get; set; }
@@ -164,7 +164,7 @@ namespace CLI.NET.Parser
         }
     }
 
-    [Child("Api", true)]
+    [Child("Api")]
     public class ApiNode : AstNode
     {
         public string Name { get; set; }
@@ -187,7 +187,7 @@ namespace CLI.NET.Parser
         }
     }
 
-    [Child("Elements", true)]
+    [Child("Elements")]
     public class ModuleNode : AstNode
     {
         public string Name { get; set; }
@@ -210,7 +210,7 @@ namespace CLI.NET.Parser
         }
     }
 
-    [Child("Args", true)]
+    [Child("Args")]
     public class FunctionNode : AstNode
     {
         public string Name { get; set; }
@@ -237,7 +237,7 @@ namespace CLI.NET.Parser
         }
     }
 
-    [Child("Fields", true)]
+    [Child("Fields")]
     public class EntityNode : AstNode
     {
         public string Name { get; set; }
@@ -260,7 +260,7 @@ namespace CLI.NET.Parser
         }
     }
 
-    [Child("Nodes", true)]
+    [Child("Nodes")]
     public class ConfigNode : AstNode
     {
         public List<KeyValueNode> Nodes { get; set; }
@@ -270,7 +270,7 @@ namespace CLI.NET.Parser
         }
     }
 
-    [Child("Modules", true)]
+    [Child("Modules")]
     public class ProjectNode : AstNode
     {
         public List<ModuleNode> Modules { get; set; }
