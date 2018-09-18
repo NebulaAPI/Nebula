@@ -1,4 +1,4 @@
-namespace CLI.NET.Parser
+namespace Nebula.Parser
 {
     public class InputStream
     {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CLI.NET.Parser
+namespace Nebula.Parser
 {
     /// <summary>
     /// This class is responsible for checking that specified data types exist

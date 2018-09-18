@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace CLI.NET.Parser
+namespace Nebula.Parser
 {
     public enum TokenType
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace CLI.NET.Parser
+namespace Nebula.Parser
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class ChildAttribute : Attribute
@@ -37,6 +37,10 @@ namespace CLI.NET.Parser
         {
             // start recursive search of child elements
             var t = o.GetType();
+            if (t == typeof(T))
+            {
+                results.Add((T)o);
+            }
             var attributes = t.GetCustomAttributes(true);
             foreach (var attribute in attributes.OfType<ChildAttribute>())
             {

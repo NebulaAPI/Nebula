@@ -6,7 +6,8 @@ using System.Collections.Generic;
 using System;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
-using CLI.NET.Parser;
+using Nebula.Parser;
+using Nebula.Renderers;
 
 namespace Nebula.Services
 {
@@ -86,12 +87,22 @@ namespace Nebula.Services
             }
             var project = JsonConvert.DeserializeObject<Project>(File.ReadAllText(projectFile));
             project.SourceDirectory = Path.Join(location, "src");
+            project.TemplateDirectory = Path.Join(location, "templates");
+            project.OutputDirectory = Path.Join(location, "out");
+            project.ProjectDirectory = location;
             if (!Directory.Exists(project.SourceDirectory))
             {
                 throw new Exception("Could not find src directory within project structure");
             }
             CurrentProject = project;
             return project;
+        }
+
+        public void SaveProject(Project project)
+        {
+            var projectFile = Path.Join(project.ProjectDirectory, "nebula.json");
+            var json = JsonConvert.SerializeObject(project);
+            File.WriteAllText(projectFile, json);
         }
 
         public void BuildProject(Project p)
@@ -101,16 +112,34 @@ namespace Nebula.Services
             GenerateFileList(p.SourceDirectory, files);
             var modules = new List<ModuleNode>();
             
+            // Build and validate the AST for the entire project
             var projectNode = new ProjectNode(files.Select(f => BuildModule(f)).ToList());
             var validator = new Validator(projectNode);
             validator.Validate();
+
+            var ts = new TemplateService(p, null);
+
+            foreach (var template in p.Templates)
+            {
+                var t = ts.GetTemplate(template);
+                if (t == null)
+                {
+                    throw new Exception("Could not find template data for template: " + template);
+                }
+                
+                var renderer = RendererFactory.Get(t.Language);
+                var templateMeta = ts.GetTemplateMeta(template);
+                renderer.PrepareOutputDir(p, templateMeta);
+                renderer.Render(projectNode, templateMeta);
+            }
+            
         }
 
         private ModuleNode BuildModule(string inputFile)
         {
             var moduleName = inputFile.Replace(Path.DirectorySeparatorChar, '.').Replace(".neb", "");
             var absoluteFile = Path.Join(CurrentProject.SourceDirectory, Path.DirectorySeparatorChar.ToString(), inputFile);
-            var parser = new Parser(absoluteFile);
+            var parser = new Parser.Parser(absoluteFile);
             return parser.Parse(moduleName);
         }
 
