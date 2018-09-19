@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Nebula.Models;
 
 namespace Nebula.Parser
 {
@@ -33,11 +34,28 @@ namespace Nebula.Parser
         {
             CollectCustomEntities();
             ValidateDataNodes();
+            ValidateApiConfig();
         }
 
         private bool IsValidType(string typeName)
         {
             return AllTypes.Contains(typeName);
+        }
+
+        private void ValidateApiConfig()
+        {
+            var apiConfigNodes = Node.SearchByType<ConfigNode>();
+            var realConfigProps = typeof(ApiConfig).GetProperties();
+            foreach (var config in apiConfigNodes)
+            {
+                foreach (var kv in config.Nodes)
+                {
+                    if (!realConfigProps.Any(p => p.Name.ToLower() == kv.Key.ToLower()))
+                    {
+                        throw new Exception($"Unknown config value: {kv.Key}");    
+                    }
+                }
+            }
         }
 
         private void ValidateDataNodes()

@@ -1,6 +1,7 @@
 using System.IO;
 using Nebula.Models;
 using Nebula.Parser;
+using System.Linq;
 
 namespace Nebula.Renderers
 {
@@ -11,6 +12,28 @@ namespace Nebula.Renderers
         public abstract void PrepareOutputDir(Project project, TemplateMeta templateMeta);
 
         protected abstract string ConvertTypeName(string inputType);
+
+        protected ApiConfig GetApiConfig(ApiNode node)
+        {
+            var config = new ApiConfig();
+            var configNode = node.SearchByType<ConfigNode>().FirstOrDefault();
+            if (configNode == null)
+            {
+                throw new System.Exception($"Could not find API configuration for {node.Name}");
+            }
+
+            foreach (var configProp in config.GetType().GetProperties())
+            {
+                // find KV pair in config node that matches this property
+                var kvNode = configNode.SearchByType<KeyValueNode>().Where(n => n.Key.ToLower() == configProp.Name.ToLower()).FirstOrDefault();
+                if (kvNode != null)
+                {
+                    configProp.SetValue(config, kvNode.Value);
+                }
+            }
+
+            return config;
+        }
 
         protected static void Copy(string sourceDirectory, string targetDirectory)
         {

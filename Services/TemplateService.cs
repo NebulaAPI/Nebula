@@ -19,14 +19,14 @@ namespace Nebula.Services
         {
             ManifestRepo = manifestRepo;
             CurrentProject = project;
-            ManifestFile = Path.Join(CurrentProject.TemplateDirectory, "template-manifest.json");
+            ManifestFile = Path.Join(CurrentProject.ManifestDirectory, "template-manifest.json");
         }
 
         public void GetOrUpdateManifest()
         {
             if (File.Exists(ManifestFile))
             {
-                using (var repo = new Repository(CurrentProject.TemplateDirectory))
+                using (var repo = new Repository(CurrentProject.ManifestDirectory))
                 {
                     string logMessage = "";
                     foreach (Remote remote in repo.Network.Remotes)
@@ -40,8 +40,8 @@ namespace Nebula.Services
             }
             else
             {
-                Directory.Delete(CurrentProject.TemplateDirectory, true);
-                Repository.Clone(ManifestRepo, CurrentProject.TemplateDirectory);
+                Directory.Delete(CurrentProject.ManifestDirectory, true);
+                Repository.Clone(ManifestRepo, CurrentProject.ManifestDirectory);
             }
         }
 
@@ -129,7 +129,11 @@ namespace Nebula.Services
             foreach (var f in Directory.GetFiles(templatePath))
             {
                 var fileContent = File.ReadAllText(f);
-                File.WriteAllText(f, fileContent.Replace("%%NAME%%", CurrentProject.Name));
+                File.WriteAllText(f, 
+                    fileContent
+                        .Replace("%%NAME%%", CurrentProject.Name)
+                        .Replace("%%VERSION%%", CurrentProject.Version)
+                );
             }
         }
     }

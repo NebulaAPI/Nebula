@@ -6,7 +6,8 @@ namespace Nebula.Models
     public class Project
     {
         public string Name { get; set; }
-        public List<Author> Authors { get; set; }
+        public string Author { get; set; }
+        public string Company { get; set; }
         public string Version { get; set; }
         public string Manifest { get; set; }
         public List<string> Templates { get; set; }
@@ -18,10 +19,11 @@ namespace Nebula.Models
         public string ProjectDirectory { get; set; }
         [JsonIgnore]
         public string OutputDirectory { get; set; }
+        [JsonIgnore]
+        public string ManifestDirectory { get; set; }
 
         public Project()
         {
-            Authors = new List<Author>();
             Templates = new List<string>();
         }
 

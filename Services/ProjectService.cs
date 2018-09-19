@@ -23,7 +23,13 @@ namespace Nebula.Services
         /// <returns></returns>
         public Project CreateProject(string name, string location)
         {
-            var p = new Project { Name = name };
+            var p = new Project 
+            { 
+                Name = name,
+                Version = "1.0.0",
+                Author = Environment.UserName,
+                Company = "Some Company"
+            };
             var repoPath = Path.Join(location, name);
 
             // TODO: make this path a config setting
@@ -44,7 +50,10 @@ namespace Nebula.Services
         {
             var variableMap = new Dictionary<string, Func<string>>()
             {
-                { "NAME", () => p.Name }
+                { "NAME", () => p.Name },
+                { "VERSION", () => p.Version },
+                { "AUTHOR", () => p.Author },
+                { "COMPANY", () => p.Company }
                 // TODO: add other variables
             };
             
@@ -89,6 +98,7 @@ namespace Nebula.Services
             project.SourceDirectory = Path.Join(location, "src");
             project.TemplateDirectory = Path.Join(location, "templates");
             project.OutputDirectory = Path.Join(location, "out");
+            project.ManifestDirectory = Path.Join(location, "manifest");
             project.ProjectDirectory = location;
             if (!Directory.Exists(project.SourceDirectory))
             {
