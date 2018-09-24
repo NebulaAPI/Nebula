@@ -40,21 +40,97 @@ namespace Nebula.Renderers
             }
         }
 
+        private string GetAuthenticationMethod(AuthenticationMethod method)
+        {
+            switch (method)
+            {
+                case AuthenticationMethod.JwtBearer: return "bearer";
+                case AuthenticationMethod.OAuthToken: return "token";
+                default: return null;
+            }
+        }
+
+        private string RenderAuthenticator(ApiConfig config)
+        {
+            if (config.AuthMethod == AuthenticationMethod.BasicHttp)
+            {
+                return "";
+            }
+            var usesToken = config.AuthMethod == AuthenticationMethod.JwtBearer || config.AuthMethod == AuthenticationMethod.OAuthToken;
+            var output = "\n\t\tprivate class Authenticator : IAuthenticator\n\t\t{";
+            if (usesToken)
+            {
+                output += "\n\t\t\tpublic string AccessToken { get; set; }";
+            }
+            else if (config.AuthMethod == AuthenticationMethod.CustomHeader)
+            {
+                output += "\n\t\t\tpublic string CustomHeader { get; set; }";
+            }
+            output += "\n\n\t\t\tpublic void Authenticate(IRestClient client, IRestRequest request)\n\t\t\t{";
+            if (usesToken)
+            {
+                output += $"\n\t\t\t\trequest.AddHeader(\"Authorization\", $\"{GetAuthenticationMethod(config.AuthMethod)} {{AccessToken}}\");";
+            }
+            else
+            {
+                output += $"\n\t\t\t\trequest.AddHeader(\"{config.CustomHeaderKey}\", $\"{{CustomHeader}}\");";
+            }
+            output += "\n\t\t\t}\n\t\t}";
+            return output;
+        }
+
         private void RenderApi(ApiNode api, ApiConfig config)
         {
-            var output = $"using System.Collections.Generic;\nusing RestSharp;\nusing {Project.Name}.{Meta.EntityLocation};\n\n";
+            var output = $"using System.Collections.Generic;\nusing RestSharp;\nusing RestSharp.Authenticators;\nusing {Project.Name}.{Meta.EntityLocation};\n\n";
             output += $"namespace {Project.Name}.{Meta.ClientLocation}\n{{";
+            
+            // class definition
             output += $"\n\tpublic class {api.Name}Client\n\t{{\n";
-            output += $"\t\tprivate RestClient Client {{ get; set; }}\n\n";
-            output += $"\t\tpublic {api.Name}Client()\n\t\t{{";
+
+            // Authenticator
+            output += RenderAuthenticator(config);
+            
+            // RestClient property
+            output += $"\n\n\t\tprivate RestClient Client {{ get; set; }}\n\n";
+            
+            // Constructor
+            switch (config.AuthMethod)
+            {
+                case AuthenticationMethod.BasicHttp:
+                    output += $"\t\tpublic {api.Name}Client(string username, string password)\n\t\t{{";
+                    break;
+                case AuthenticationMethod.CustomHeader:
+                    output += $"\t\tpublic {api.Name}Client(string authenticationValue)\n\t\t{{";
+                    break;
+                case AuthenticationMethod.JwtBearer:
+                case AuthenticationMethod.OAuthToken:
+                    output += $"\t\tpublic {api.Name}Client(string accessToken)\n\t\t{{";
+                    break;
+            }
             output += $"\n\t\t\tClient = new RestClient(\"{config.Host}\");";
+            switch (config.AuthMethod)
+            {
+                case AuthenticationMethod.BasicHttp:
+                    output += "\n\t\t\tClient.Authenticator = new HttpBasicAuthenticator(username, password);";
+                    break;
+                case AuthenticationMethod.CustomHeader:
+                    output += "\n\t\t\tClient.Authenticator = new Authenticator { CustomHeader = authenticationValue };";
+                    break;
+                case AuthenticationMethod.JwtBearer:
+                case AuthenticationMethod.OAuthToken:
+                    output += "\n\t\t\tClient.Authenticator = new Authenticator { AccessToken = accessToken };";
+                    break;
+            }
+            
             output += "\n\t\t}";
+            
+            // Functions
             foreach (var f in api.SearchByType<FunctionNode>())
             {
                 output += RenderFunction(f, config);
             }
             output += "\n\t}\n}\n";
-            var outputFileName = Path.Join(DestinationDirectory, Meta.ClientLocation, $"{api.Name}.cs");
+            var outputFileName = Path.Join(DestinationDirectory, Meta.ClientLocation, $"{api.Name}Client.cs");
             File.WriteAllText(outputFileName, output);
         }
 
@@ -190,7 +266,11 @@ namespace Nebula.Renderers
             DestinationDirectory = destTemplatePath;
             Project = project;
             
-            Directory.Delete(destTemplatePath, true);
+            if (Directory.Exists(destTemplatePath))
+            {
+                Directory.Delete(destTemplatePath, true);
+            }
+            
             Copy(sourceTemplatePath, destTemplatePath);
 
             var ts = new TemplateService(project, null);

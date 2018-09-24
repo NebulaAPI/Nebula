@@ -24,25 +24,8 @@ namespace Nebula.Services
 
         public void GetOrUpdateManifest()
         {
-            if (File.Exists(ManifestFile))
-            {
-                using (var repo = new Repository(CurrentProject.ManifestDirectory))
-                {
-                    string logMessage = "";
-                    foreach (Remote remote in repo.Network.Remotes)
-                    {
-                        IEnumerable<string> refSpecs = remote.FetchRefSpecs.Select(x => x.Specification);
-                        Commands.Fetch(repo, remote.Name, refSpecs, null, logMessage);
-                    }
-                    Branch originMaster = repo.Branches["origin/master"];
-                    repo.Reset(ResetMode.Hard, originMaster.Tip);
-                }
-            }
-            else
-            {
-                Directory.Delete(CurrentProject.ManifestDirectory, true);
-                Repository.Clone(ManifestRepo, CurrentProject.ManifestDirectory);
-            }
+            Directory.Delete(CurrentProject.ManifestDirectory, true);
+            Repository.Clone(ManifestRepo, CurrentProject.ManifestDirectory);
         }
 
         public List<LibraryTemplate> GetTemplates()

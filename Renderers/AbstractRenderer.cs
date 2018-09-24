@@ -2,6 +2,7 @@ using System.IO;
 using Nebula.Models;
 using Nebula.Parser;
 using System.Linq;
+using System;
 
 namespace Nebula.Renderers
 {
@@ -15,7 +16,7 @@ namespace Nebula.Renderers
 
         protected ApiConfig GetApiConfig(ApiNode node)
         {
-            var config = new ApiConfig();
+            var config = new ApiConfig { AuthMethod = AuthenticationMethod.NoAuthentication };
             var configNode = node.SearchByType<ConfigNode>().FirstOrDefault();
             if (configNode == null)
             {
@@ -28,7 +29,22 @@ namespace Nebula.Renderers
                 var kvNode = configNode.SearchByType<KeyValueNode>().Where(n => n.Key.ToLower() == configProp.Name.ToLower()).FirstOrDefault();
                 if (kvNode != null)
                 {
-                    configProp.SetValue(config, kvNode.Value);
+                    if (typeof(AuthenticationMethod).IsAssignableFrom(configProp.PropertyType))
+                    {
+                        if (Enum.TryParse(typeof(AuthenticationMethod), kvNode.Value, true, out var enumVal))
+                        {
+                            configProp.SetValue(config, enumVal);
+                        }
+                        else
+                        {
+                            throw new Exception($"Invalid value for {configProp.Name}");
+                        }
+                    }
+                    else
+                    {
+                        configProp.SetValue(config, kvNode.Value);
+                    }
+                    
                 }
             }
 
@@ -37,8 +53,8 @@ namespace Nebula.Renderers
 
         protected static void Copy(string sourceDirectory, string targetDirectory)
         {
-            DirectoryInfo diSource = new DirectoryInfo(sourceDirectory);
-            DirectoryInfo diTarget = new DirectoryInfo(targetDirectory);
+            var diSource = new DirectoryInfo(sourceDirectory);
+            var diTarget = new DirectoryInfo(targetDirectory);
 
             CopyAll(diSource, diTarget);
         }
@@ -48,15 +64,15 @@ namespace Nebula.Renderers
             Directory.CreateDirectory(target.FullName);
 
             // Copy each file into the new directory.
-            foreach (FileInfo fi in source.GetFiles())
+            foreach (var fi in source.GetFiles())
             {
                 fi.CopyTo(Path.Combine(target.FullName, fi.Name), true);
             }
 
             // Copy each subdirectory using recursion.
-            foreach (DirectoryInfo diSourceSubDir in source.GetDirectories())
+            foreach (var diSourceSubDir in source.GetDirectories())
             {
-                DirectoryInfo nextTargetSubDir =
+                var nextTargetSubDir =
                     target.CreateSubdirectory(diSourceSubDir.Name);
                 CopyAll(diSourceSubDir, nextTargetSubDir);
             }

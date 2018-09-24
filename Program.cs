@@ -131,7 +131,7 @@ namespace Nebula
                         var templates = ts.GetTemplates();
                         foreach (var t in templates)
                         {
-                            console.WriteLine(t.Name);
+                            console.WriteLine($"{t.Name}\t{t.Language}\t{t.Framework}\t{t.Version}");
                         }
                         return 0;
                     }
