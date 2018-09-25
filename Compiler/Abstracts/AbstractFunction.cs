@@ -1,4 +1,5 @@
 using Nebula.Compiler.Objects;
+using Nebula.Parser;
 
 namespace Nebula.Compiler.Abstracts
 {
@@ -7,6 +8,12 @@ namespace Nebula.Compiler.Abstracts
     /// </summary>
     public class AbstractFunction : RootObject
     {
+        public FunctionNode Node { get; set; }
         
+        public AbstractFunction(FunctionNode node)
+        {
+            Name = node.Name;
+            Node = node;
+        }
     }
 }

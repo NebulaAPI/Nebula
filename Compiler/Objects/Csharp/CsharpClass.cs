@@ -15,6 +15,8 @@ namespace Nebula.Compiler.Objects.Csharp
         public CsharpClass(ApiNode root) : base(root)
         {
             Init();
+
+            Functions.AddRange(root.SearchByType<FunctionNode>().Select(f => new CsharpFunction(f)));
         }
 
         public CsharpClass(EntityNode root) : base(root)

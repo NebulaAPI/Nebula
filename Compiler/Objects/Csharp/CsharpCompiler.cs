@@ -15,9 +15,9 @@ namespace Nebula.Compiler.Objects.Csharp
         public CsharpCompiler(Project project, ProjectNode rootNode, TemplateMeta templateData)
         {
             var entityNamespace = new CsharpNamespace { Name = templateData.EntityLocation };
-            //var clientNamespace = new CsharpNamespace { Name = templateData.ClientLocation };
+            var clientNamespace = new CsharpNamespace { Name = templateData.ClientLocation };
             entityNamespace.Classes.AddRange(rootNode.SearchByType<EntityNode>().Select(e => new CsharpClass(e)));
-            //clientNamespace.Classes.AddRange(rootNode.SearchByType<ApiNode>().Select(a => new CsharpClass(a)));
+            clientNamespace.Classes.AddRange(rootNode.SearchByType<ApiNode>().Select(a => new CsharpClass(a)));
         }
     }
 }

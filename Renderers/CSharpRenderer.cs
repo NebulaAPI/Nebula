@@ -8,6 +8,7 @@ using Nebula.Services;
 using Nebula.Util;
 using System.Linq;
 using System;
+using Nebula.Compiler.Objects.Csharp;
 
 namespace Nebula.Renderers
 {
@@ -22,6 +23,8 @@ namespace Nebula.Renderers
         public override void Render(ProjectNode project, TemplateMeta templateMeta)
         {
             Meta = templateMeta;
+
+            var cs = new CsharpCompiler(Project, project, Meta);
             
             // first we get the list of entity nodes and render those
             var entityNodes = project.SearchByType<EntityNode>();

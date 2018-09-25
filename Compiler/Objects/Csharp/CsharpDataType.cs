@@ -4,11 +4,10 @@ using Nebula.Parser;
 
 namespace Nebula.Compiler.Objects.Csharp
 {
-    public class CsharpProperty : AbstractProperty, IRenderable
+    public class CsharpDataType : AbstractDataType, IRenderable
     {
-        public CsharpProperty(ArgumentNode root) : base(root)
+        public CsharpDataType(DataTypeNode node) : base(node)
         {
-            DataType = new CsharpDataType(root.ArgType);
         }
 
         public string Render()
