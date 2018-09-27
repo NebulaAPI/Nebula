@@ -1,3 +1,5 @@
+using Nebula.Compiler.Abstracts;
+
 namespace Nebula.Renderers
 {
     public class RendererFactory
@@ -7,7 +9,6 @@ namespace Nebula.Renderers
             switch(language.ToLower())
             {
                 case "c#": return new CSharpRenderer();
-                case "java": return new JavaRenderer();
                 default: return null;
             }    
         }

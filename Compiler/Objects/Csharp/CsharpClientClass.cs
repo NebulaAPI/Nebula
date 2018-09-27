@@ -15,7 +15,7 @@ namespace Nebula.Compiler.Objects.Csharp
         {
             Config = Compiler.ApiConfig[RootNode];
 
-            Functions.AddRange(RootNode.SearchByType<FunctionNode>().Select(f => new CsharpFunction(f)));
+            Functions.AddRange(RootNode.SearchByType<FunctionNode>().Select(f => new AbstractFunction(f)));
 
             Properties.Add(new GenericProperty("Client", "RestClient"));
 
