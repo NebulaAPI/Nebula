@@ -10,7 +10,7 @@ namespace Nebula.Compiler.Abstracts
     {
         public DataTypeNode Node { get; set; }
 
-        protected AbstractDataType(DataTypeNode node)
+        public AbstractDataType(DataTypeNode node)
         {
             Node = node;
             Name = node.Name;

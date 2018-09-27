@@ -11,11 +11,19 @@ namespace Nebula.Compiler.Abstracts
         public ArgumentNode Node { get; set; }
 
         public AbstractDataType DataType { get; set; }
+
+        public string DataTypeString { get; set; }
         
         public AbstractVariableDefinition(ArgumentNode node)
         {
             Node = node;
             Name = node.Name;
+        }
+
+        public AbstractVariableDefinition(string name, string type)
+        {
+            Name = name;
+            DataTypeString = type;
         }
     }
 }

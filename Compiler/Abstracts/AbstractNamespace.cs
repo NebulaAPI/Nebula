@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Nebula.Compiler.Interfaces;
 using Nebula.Compiler.Objects;
 
 namespace Nebula.Compiler.Abstracts
@@ -13,6 +15,11 @@ namespace Nebula.Compiler.Abstracts
     /// </summary>
     public class AbstractNamespace : RootObject
     {
-        
+        public List<string> Imports { get; set; }
+
+        public AbstractNamespace()
+        {
+            Imports = new List<string>();
+        }
     }
 }

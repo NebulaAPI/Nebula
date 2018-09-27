@@ -3,38 +3,113 @@ using Nebula.Compiler.Abstracts;
 using Nebula.Compiler.Interfaces;
 using Nebula.Parser;
 using System.Linq;
+using System;
+using Nebula.Models;
 
 namespace Nebula.Compiler.Objects.Csharp
 {
-    public class CsharpClass : AbstractClass, IRenderable
+    public abstract class CsharpClass<T> : AbstractClass<T> where T : MainObjectNode
     {
-        public List<CsharpProperty> Properties { get; set; }
-
-        public List<CsharpFunction> Functions { get; set; }
-
-        public CsharpClass(ApiNode root) : base(root)
+        public CsharpClass(AbstractNamespace ns, T root, CsharpCompiler compiler) 
+            : base(ns, root, compiler)
         {
-            Init();
-
-            Functions.AddRange(root.SearchByType<FunctionNode>().Select(f => new CsharpFunction(f)));
+            
         }
 
-        public CsharpClass(EntityNode root) : base(root)
+        public CsharpClass()
+            : base()
         {
-            Init();
 
-            Properties.AddRange(root.Fields.Select(f => new CsharpProperty(f)));
         }
 
-        private void Init()
+        protected GenericClass BuildAuthenticator()
         {
-            Properties = new List<CsharpProperty>();
-            Functions = new List<CsharpFunction>();
+            var props = new List<GenericProperty>();
+            var body = new List<string>();
+
+            Action<string> prepareAuthorizationBody = (authMethod) => {
+                props.Add(new GenericProperty {
+                        Name = "AccessToken", 
+                        DataTypeString = "string"
+                    });
+                body.AddRange(new [] {
+                    $"request.AddHeader(\"Authorization\", $\"{authMethod} {{AccessToken}}\"" 
+                });
+            };
+
+            switch (Config.AuthMethod)
+            {
+                case AuthenticationMethod.BasicHttp:
+                case AuthenticationMethod.NoAuthentication:
+                    return null;
+                case AuthenticationMethod.CustomHeader:
+                    props.Add(new GenericProperty {
+                        Name = "CustomHeader",
+                        DataTypeString = "string"
+                    });
+                    body.AddRange(new [] {
+                        $"request.AddHeader(\"{Config.CustomHeaderKey}\", $\"{{CustomHeader}}\"" 
+                    });
+                    break;
+                case AuthenticationMethod.JwtBearer:
+                    prepareAuthorizationBody("bearer");
+                    break;
+                case AuthenticationMethod.OAuthToken:
+                    prepareAuthorizationBody("token");
+                    break;
+            }
+
+            var funcs = new List<AbstractFunction>
+            {
+                new AbstractFunction
+                {
+                    Name = "Authenticate",
+                    Arguments = new List<AbstractVariableDefinition>
+                    {
+                        new AbstractVariableDefinition("client", "IRestClient"),
+                        new AbstractVariableDefinition("request", "IRestRequest")
+                    },
+                    Body = body
+                }
+            };
+            
+            return new GenericClass
+            {
+                AccessModifier = Visibility.Private,
+                Name = "Authenticator",
+                Inheritence = new List<GenericClass> {
+                    new GenericClass { Name = "IAuthenticator"}
+                },
+                Properties = props,
+                Functions = funcs
+            };
         }
 
-        public string Render()
+        protected GenericConstructor BuildConstructor()
         {
-            throw new System.NotImplementedException();
+            var args = new List<GenericVariableDefinition>();
+            switch (Config.AuthMethod)
+            {
+                case AuthenticationMethod.BasicHttp:
+                    args.Add(new GenericVariableDefinition("username", "string"));
+                    args.Add(new GenericVariableDefinition("password", "string"));
+                    break;
+                case AuthenticationMethod.CustomHeader:
+                    args.Add(new GenericVariableDefinition("authValue", "string"));
+                    break;
+                case AuthenticationMethod.JwtBearer:
+                case AuthenticationMethod.OAuthToken:
+                    args.Add(new GenericVariableDefinition("token", "string"));
+                    break;
+            }
+            
+            return new GenericConstructor
+            {
+                Arguments = args,
+                Body = new List<string> {
+
+                }
+            };
         }
     }
 }

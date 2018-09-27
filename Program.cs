@@ -75,6 +75,7 @@ namespace Nebula
                 catch (Exception e)
                 {
                     console.Error.WriteLine(e.Message);
+                    console.Error.WriteLine(e.StackTrace);
                     return 1;
                 }
             }

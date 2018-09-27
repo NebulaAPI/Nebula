@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace Nebula.Compiler.Objects
 {
     public enum Visibility
@@ -19,6 +21,11 @@ namespace Nebula.Compiler.Objects
         public RootObject()
         {
             AccessModifier = Visibility.Public;
+        }
+
+        protected string T(int tabLevel)
+        {
+            return new string('\t', tabLevel);
         }
     }
 }

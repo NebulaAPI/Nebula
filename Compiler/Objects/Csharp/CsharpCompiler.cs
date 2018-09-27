@@ -1,6 +1,7 @@
 using Nebula.Compiler.Abstracts;
 using Nebula.Models;
 using Nebula.Parser;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Nebula.Compiler.Objects.Csharp
@@ -13,11 +14,31 @@ namespace Nebula.Compiler.Objects.Csharp
         /// </summary>
         /// <param name="rootNode"></param>
         public CsharpCompiler(Project project, ProjectNode rootNode, TemplateMeta templateData)
+            : base(project, rootNode, templateData)
         {
-            var entityNamespace = new CsharpNamespace { Name = templateData.EntityLocation };
-            var clientNamespace = new CsharpNamespace { Name = templateData.ClientLocation };
-            entityNamespace.Classes.AddRange(rootNode.SearchByType<EntityNode>().Select(e => new CsharpClass(e)));
-            clientNamespace.Classes.AddRange(rootNode.SearchByType<ApiNode>().Select(a => new CsharpClass(a)));
+            var entityNamespace = new AbstractNamespace { 
+                Name = project.Name + "." + templateData.EntityLocation,
+                Imports = new List<string> {
+                    "System",
+                    "System.Collections.Generic"
+                }
+            };
+            var clientNamespace = new AbstractNamespace {
+                Name = project.Name + "." + templateData.ClientLocation,
+                Imports = new List<string> {
+                    "System",
+                    "System.Collections.Generic",
+                    "RestSharp",
+                    "RestSharp.Authenticators",
+                    $"{project.Name}.{templateData.EntityLocation}"
+                }
+            };
+            
+            var entityClasses = GetClassesByType<EntityNode, CsharpEntityClass>(entityNamespace, this);
+            var clientClasses = GetClassesByType<ApiNode, CsharpClientClass>(clientNamespace, this);
+
+            OutputFiles.AddRange(entityClasses.Select(c => new OutputFile(c)));
+            OutputFiles.AddRange(clientClasses.Select(c => new OutputFile(c)));
         }
     }
 }

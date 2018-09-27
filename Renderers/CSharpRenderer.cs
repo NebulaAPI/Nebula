@@ -9,6 +9,8 @@ using Nebula.Util;
 using System.Linq;
 using System;
 using Nebula.Compiler.Objects.Csharp;
+using Nebula.Compiler.Objects;
+using Nebula.Compiler.Abstracts;
 
 namespace Nebula.Renderers
 {
@@ -25,15 +27,61 @@ namespace Nebula.Renderers
             Meta = templateMeta;
 
             var cs = new CsharpCompiler(Project, project, Meta);
-            
+            foreach (var file in cs.OutputFiles)
+            {
+                var output = new List<string>();
+                RenderNode(file.Root, output);
+            }
             // first we get the list of entity nodes and render those
-            var entityNodes = project.SearchByType<EntityNode>();
-            RenderEntities(entityNodes);
+            //var entityNodes = project.SearchByType<EntityNode>();
+            //RenderEntities(entityNodes);
 
-            var apiNodes = project.SearchByType<ApiNode>();
-            RenderApis(apiNodes);
+            //var apiNodes = project.SearchByType<ApiNode>();
+            //RenderApis(apiNodes);
         }
 
+        private void RenderNode(RootObject node, List<string> output)
+        {
+            switch (node)
+            {
+                case AbstractNamespace ns: 
+                    break;
+                case CsharpEntityClass c:
+                    break;
+                case CsharpClientClass c:
+                    break;
+                default:
+                    throw new Exception("Unhandled node type");
+            }
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         private void RenderApis(List<ApiNode> apis)
         {
             foreach (var api in apis)

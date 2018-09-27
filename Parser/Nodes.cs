@@ -81,6 +81,15 @@ namespace Nebula.Parser
         }
     }
 
+    public class NamedNode : AstNode
+    {
+        public string Name { get; set; }
+        
+        public NamedNode(string type) : base(type)
+        {
+        }
+    }
+
     public class NumberNode : AstNode
     {
         public int Value { get; set; }
@@ -118,11 +127,11 @@ namespace Nebula.Parser
     }
 
     [Child("Variables"), Child("Body")]
-    public class LambdaNode<T> : AstNode where T : AstNode
+    public class LambdaNode<T> : NamedNode where T : AstNode
     {
         public List<T> Variables { get; set; }
         public AstNode Body { get; set; }
-        public string Name { get; set; }
+
         public LambdaNode(List<T> vars, AstNode body, string name) : base("lambda")
         {
             Variables = vars;
@@ -168,10 +177,16 @@ namespace Nebula.Parser
         }
     }
 
-    [Child("Api")]
-    public class ApiNode : AstNode
+    public class MainObjectNode : NamedNode
     {
-        public string Name { get; set; }
+        public MainObjectNode(string type) : base(type)
+        {
+        }
+    }
+
+    [Child("Api")]
+    public class ApiNode : MainObjectNode
+    {
         public List<AstNode> Api { get; set; }
         public ApiNode(string name, List<AstNode> api) : base("api")
         {
@@ -192,9 +207,8 @@ namespace Nebula.Parser
     }
 
     [Child("Elements")]
-    public class ModuleNode : AstNode
+    public class ModuleNode : NamedNode
     {
-        public string Name { get; set; }
         public List<AstNode> Elements { get; set; }
         public ModuleNode(string name, List<AstNode> elements) : base("module")
         {
@@ -203,9 +217,8 @@ namespace Nebula.Parser
         }
     }
 
-    public class ArgumentNode : AstNode
+    public class ArgumentNode : NamedNode
     {
-        public string Name { get; set; }
         public DataTypeNode ArgType { get; set; }
         public ArgumentNode(string name, DataTypeNode type) : base("argument")
         {
@@ -215,9 +228,8 @@ namespace Nebula.Parser
     }
 
     [Child("Args")]
-    public class FunctionNode : AstNode
+    public class FunctionNode : NamedNode
     {
-        public string Name { get; set; }
         public List<ArgumentNode> Args { get; set; }
         public TokenType Method { get; set; }
         public string Url { get; set; }
@@ -242,9 +254,8 @@ namespace Nebula.Parser
     }
 
     [Child("Fields")]
-    public class EntityNode : AstNode
+    public class EntityNode : MainObjectNode
     {
-        public string Name { get; set; }
         public List<ArgumentNode> Fields { get; set; }
         public EntityNode(string name, List<ArgumentNode> fields) : base("entity")
         {
@@ -284,9 +295,8 @@ namespace Nebula.Parser
         }
     }
 
-    public class DataTypeNode : AstNode
+    public class DataTypeNode : NamedNode
     {
-        public string Name { get; set; }
         public bool Generic { get; set; }
         public string GenericType { get; set; }
         public DataTypeNode(string name, bool generic, string genericType) : base("dt")

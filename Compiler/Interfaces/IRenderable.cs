@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Nebula.Compiler.Interfaces
 {
     public interface IRenderable
@@ -6,6 +8,6 @@ namespace Nebula.Compiler.Interfaces
         /// 
         /// </summary>
         /// <returns></returns>
-        string Render();
+        List<string> Render(int initialIndentLevel);
     }
 }
