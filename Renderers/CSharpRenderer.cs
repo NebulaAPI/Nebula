@@ -16,255 +16,8 @@ namespace Nebula.Renderers
 {
     public class CSharpRenderer : AbstractRenderer
     {
-        private string DestinationDirectory { get; set; }
-
-        private Project Project { get; set; }
-
-        private TemplateMeta Meta { get; set; }
-        
-        public override void Render(ProjectNode project, TemplateMeta templateMeta)
+        public CSharpRenderer()
         {
-            Meta = templateMeta;
-
-            var cs = new CsharpCompiler(Project, project, Meta);
-            foreach (var file in cs.OutputFiles)
-            {
-                var output = new List<string>();
-                RenderNode(file.Root, output);
-            }
-            // first we get the list of entity nodes and render those
-            //var entityNodes = project.SearchByType<EntityNode>();
-            //RenderEntities(entityNodes);
-
-            //var apiNodes = project.SearchByType<ApiNode>();
-            //RenderApis(apiNodes);
-        }
-
-        private void RenderNode(RootObject node, List<string> output)
-        {
-            switch (node)
-            {
-                case AbstractNamespace ns: 
-                    break;
-                case CsharpEntityClass c:
-                    break;
-                case CsharpClientClass c:
-                    break;
-                default:
-                    throw new Exception("Unhandled node type");
-            }
-        }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        private void RenderApis(List<ApiNode> apis)
-        {
-            foreach (var api in apis)
-            {
-                var apiConfig = GetApiConfig(api);
-                RenderApi(api, apiConfig);
-            }
-        }
-
-        private string GetAuthenticationMethod(AuthenticationMethod method)
-        {
-            switch (method)
-            {
-                case AuthenticationMethod.JwtBearer: return "bearer";
-                case AuthenticationMethod.OAuthToken: return "token";
-                default: return null;
-            }
-        }
-
-        private string RenderAuthenticator(ApiConfig config)
-        {
-            if (config.AuthMethod == AuthenticationMethod.BasicHttp)
-            {
-                return "";
-            }
-            var usesToken = config.AuthMethod == AuthenticationMethod.JwtBearer || config.AuthMethod == AuthenticationMethod.OAuthToken;
-            var output = "\n\t\tprivate class Authenticator : IAuthenticator\n\t\t{";
-            if (usesToken)
-            {
-                output += "\n\t\t\tpublic string AccessToken { get; set; }";
-            }
-            else if (config.AuthMethod == AuthenticationMethod.CustomHeader)
-            {
-                output += "\n\t\t\tpublic string CustomHeader { get; set; }";
-            }
-            output += "\n\n\t\t\tpublic void Authenticate(IRestClient client, IRestRequest request)\n\t\t\t{";
-            if (usesToken)
-            {
-                output += $"\n\t\t\t\trequest.AddHeader(\"Authorization\", $\"{GetAuthenticationMethod(config.AuthMethod)} {{AccessToken}}\");";
-            }
-            else
-            {
-                output += $"\n\t\t\t\trequest.AddHeader(\"{config.CustomHeaderKey}\", $\"{{CustomHeader}}\");";
-            }
-            output += "\n\t\t\t}\n\t\t}";
-            return output;
-        }
-
-        private void RenderApi(ApiNode api, ApiConfig config)
-        {
-            var output = $"using System.Collections.Generic;\nusing RestSharp;\nusing RestSharp.Authenticators;\nusing {Project.Name}.{Meta.EntityLocation};\n\n";
-            output += $"namespace {Project.Name}.{Meta.ClientLocation}\n{{";
-            
-            // class definition
-            output += $"\n\tpublic class {api.Name}Client\n\t{{\n";
-
-            // Authenticator
-            output += RenderAuthenticator(config);
-            
-            // RestClient property
-            output += $"\n\n\t\tprivate RestClient Client {{ get; set; }}\n\n";
-            
-            // Constructor
-            switch (config.AuthMethod)
-            {
-                case AuthenticationMethod.BasicHttp:
-                    output += $"\t\tpublic {api.Name}Client(string username, string password)\n\t\t{{";
-                    break;
-                case AuthenticationMethod.CustomHeader:
-                    output += $"\t\tpublic {api.Name}Client(string authenticationValue)\n\t\t{{";
-                    break;
-                case AuthenticationMethod.JwtBearer:
-                case AuthenticationMethod.OAuthToken:
-                    output += $"\t\tpublic {api.Name}Client(string accessToken)\n\t\t{{";
-                    break;
-            }
-            output += $"\n\t\t\tClient = new RestClient(\"{config.Host}\");";
-            switch (config.AuthMethod)
-            {
-                case AuthenticationMethod.BasicHttp:
-                    output += "\n\t\t\tClient.Authenticator = new HttpBasicAuthenticator(username, password);";
-                    break;
-                case AuthenticationMethod.CustomHeader:
-                    output += "\n\t\t\tClient.Authenticator = new Authenticator { CustomHeader = authenticationValue };";
-                    break;
-                case AuthenticationMethod.JwtBearer:
-                case AuthenticationMethod.OAuthToken:
-                    output += "\n\t\t\tClient.Authenticator = new Authenticator { AccessToken = accessToken };";
-                    break;
-            }
-            
-            output += "\n\t\t}";
-            
-            // Functions
-            foreach (var f in api.SearchByType<FunctionNode>())
-            {
-                output += RenderFunction(f, config);
-            }
-            output += "\n\t}\n}\n";
-            var outputFileName = Path.Join(DestinationDirectory, Meta.ClientLocation, $"{api.Name}Client.cs");
-            File.WriteAllText(outputFileName, output);
-        }
-
-        private string RenderType(DataTypeNode node)
-        {
-            if (node.Generic && node.Name == "array")
-            {
-                return $"List<{node.GenericType}>";
-            }
-
-            return $"{ConvertTypeName(node.Name)}";
-        }
-
-        private List<string> RenderArguments(List<ArgumentNode> arguments)
-        {
-            var output = new List<string>();
-
-            foreach (var arg in arguments)
-            {
-                output.Add($"{RenderType(arg.ArgType)} {arg.Name}");
-            }
-
-            return output;
-        }
-
-        private string GetHttpMethod(TokenType functionType)
-        {
-            switch (functionType)
-            {
-                case TokenType.GetFunction: return "Method.GET";
-                case TokenType.PostFunction: return "Method.POST";
-                case TokenType.PutFunction: return "Method.PUT";
-                case TokenType.DeleteFunction: return "Method.DELETE";
-                default: throw new System.Exception("Unknown function method type");
-            }
-        }
-
-        private string RenderUrlSegment(string url, List<ArgumentNode> args)
-        {
-            var output = "";
-            // look in the URL for {variable} strings and then try and find a matching function argument
-            // if we find it, generate the appropriate request.AddUrlSegment call
-            // for any argument that is not part of the URL, send that as a parameter
-            var regex = new Regex(@"({[a-z]+})", RegexOptions.IgnoreCase);
-            var matches = regex.Matches(url);
-            var usedArgs = new List<ArgumentNode>();
-            foreach (Match m in matches)
-            {
-                var parameterName = m.Value.Replace("{", "").Replace("}", "");
-                var matchingArg = args.Where(a => a.Name == parameterName).FirstOrDefault();
-                if (matchingArg == null)
-                {
-                    throw new Exception("No matching argument for URL parameter: " + parameterName);
-                }
-                usedArgs.Add(matchingArg);
-                output += $"\n\t\t\trequest.AddUrlSegment(\"{parameterName}\", {matchingArg.Name});";
-            }
-
-            var unusedArgs = args.Where(a => !usedArgs.Contains(a));
-            foreach (var arg in unusedArgs)
-            {
-                output += $"\n\t\t\trequest.AddParameter(\"{arg.Name}\", {arg.Name});";
-            }
-
-            return output;
-        }
-
-        private string RenderFunction(FunctionNode function, ApiConfig config)
-        {
-            var prefix = config.Prefix;
-            var output = $"\n\n\t\tpublic {RenderType(function.ReturnType)} {function.Name.ToProperCase().ToPascalCase()}(";
-            var args = RenderArguments(function.Args);
-            output += string.Join(", ", args);
-            output += ")\n\t\t{";
-            var method = GetHttpMethod(function.Method);
-            output += $"\n\t\t\tvar request = new RestRequest(\"{prefix}{function.Url}\", {method});";
-            //output += $"\n\t\t\t"
-            output += RenderUrlSegment(function.Url, function.Args);
-            var returnType = RenderType(function.ReturnType);
-            output += $"\n\t\t\tvar response = Client.Execute<{returnType}>(request);";
-            output += "\n\t\t\treturn response.Data;";
-            output += "\n\t\t}";
-            return output;
         }
 
         protected override string ConvertTypeName(string inputType)
@@ -278,54 +31,149 @@ namespace Nebula.Renderers
             }
         }
 
-        private void RenderEntities(List<EntityNode> entities)
+        protected override void RenderAbstractConstructor(AbstractConstructor ac)
         {
-            foreach (var entity in entities)
-            {
-                var output = $"using System;\nusing System.Collections.Generic;\n\nnamespace {Project.Name}.{Meta.EntityLocation}\n{{";
-                output += $"\n\tpublic class {entity.Name}\n\t{{\n";
-                foreach (var field in entity.Fields)
-                {
-                    output += $"\t\t{RenderField(field)}\n\n";
-                }
-                output += "\t}\n}\n";
-                var outputFileName = Path.Join(DestinationDirectory, Meta.EntityLocation, $"{entity.Name}.cs");
-                File.WriteAllText(outputFileName, output);
-            }
+            
         }
 
-        private string RenderField(ArgumentNode node)
+        protected override string RenderAbstractDataType(AbstractDataType abstractData)
         {
-            var fieldName = node.Name.ToProperCase().ToPascalCase();
-            var typeName = ConvertTypeName(node.ArgType.Name);
-
-            if (node.ArgType.Generic && node.ArgType.Name == "array")
+            if (abstractData.Node.Generic && abstractData.Node.Name == "array")
             {
-                return $"public List<{node.ArgType.GenericType}> {fieldName} {{ get; set; }}";
+                return $"List<{abstractData.Node.GenericType}>";
             }
 
-            return $"public {typeName} {fieldName} {{ get; set; }}";
+            return ConvertTypeName(abstractData.Node.Name);
         }
 
-        public override void PrepareOutputDir(Project project, TemplateMeta templateMeta)
+        protected override void RenderAbstractFunction(AbstractFunction function)
         {
-            // here we need to copy the template folder to the output directory
-            // and customize the template
-            var sourceTemplatePath = Path.Join(project.TemplateDirectory, templateMeta.TemplateData.Name);
-            var destTemplatePath = Path.Join(project.OutputDirectory, $"{project.Name}-csharp");
+            var visibility = function.AccessModifier.ToString().ToLower();
+            var rt = RenderAbstractDataType(function.ReturnType);
+            var args = string.Join(", ", function.Arguments.Select(a => RenderAbstractVariableDefinition(a)));
 
-            DestinationDirectory = destTemplatePath;
-            Project = project;
-            
-            if (Directory.Exists(destTemplatePath))
+            WriteIndented($"{visibility} {rt} {function.Name}({args})");
+            WriteIndented("{");
+            IndentLevel++;
+
+            IndentLevel--;
+            WriteIndented("}");
+        }
+
+        protected override void RenderAbstractNamespace(AbstractNamespace ns)
+        {
+            foreach (var import in ns.Imports)
             {
-                Directory.Delete(destTemplatePath, true);
+                CurrentOutput.Add($"using {import};");
             }
             
-            Copy(sourceTemplatePath, destTemplatePath);
+            CurrentOutput.Add($"namespace {ns.Name}");
+            CurrentOutput.Add("{");
+        }
 
-            var ts = new TemplateService(project, null);
-            ts.CustomizeTemplate(destTemplatePath, templateMeta.TemplateData.Name);
+        protected override void RenderAbstractProperty(AbstractProperty prop)
+        {
+            
+        }
+
+        protected override string RenderAbstractVariableDefinition(AbstractVariableDefinition variable)
+        {
+            return $"{RenderAbstractDataType(variable.DataType)} {variable.Name}";
+        }
+
+        protected override void RenderApiClass(AbstractClass<ApiNode> ac)
+        {
+            RenderNode(ac.Namespace);
+            IndentLevel++;
+            WriteIndented($"public class {ac.Name}Client");
+            WriteIndented("{");
+            IndentLevel++;
+            foreach (var extra in ac.TopOfClassExtra)
+            {
+                RenderNode(extra);
+            }
+            foreach (var prop in ac.Properties)
+            {
+                RenderNode(prop);
+            }
+            RenderNode(ac.Constructor);
+            foreach (var func in ac.Functions)
+            {
+                RenderAbstractFunction(func);
+            }
+            IndentLevel--;
+            WriteIndented("}");
+            IndentLevel--;
+            WriteIndented("}");
+        }
+
+        protected override void RenderEntityClass(AbstractClass<EntityNode> ac)
+        {
+            RenderNode(ac.Namespace);
+            IndentLevel++;
+            WriteIndented($"public class {ac.Name}");
+            WriteIndented("{");
+            IndentLevel++;
+
+            IndentLevel--;
+            WriteIndented("}");
+            IndentLevel--;
+            WriteIndented("}");
+        }
+
+        protected override void RenderGenericClass(GenericClass genericClass)
+        {
+            var inherits = "";
+            if (genericClass.Inheritence.Count > 0)
+            {
+                inherits = ": " + string.Join(", ", genericClass.Inheritence.Select(i => i.Name));
+            }
+            WriteIndented($"{genericClass.AccessModifier.ToString().ToLower()} class {genericClass.Name} {inherits}");
+            WriteIndented("{");
+            IndentLevel++;
+            foreach (var prop in genericClass.Properties)
+            {
+                RenderGenericProperty(prop);
+            }
+            RenderGenericConstructor(genericClass.Constructor);
+            foreach (var func in genericClass.Functions)
+            {
+                RenderGenericFunction(func);
+            }
+            IndentLevel--;
+            WriteIndented("}");
+        }
+
+        protected override void RenderGenericConstructor(GenericConstructor genericConstructor)
+        {
+            
+        }
+
+        protected override void RenderGenericFunction(GenericFunction genericFunction)
+        {
+            var visibility = genericFunction.AccessModifier.ToString().ToLower();
+            var rt = genericFunction.ReturnType;
+            var name = genericFunction.Name;
+            var args = string.Join(", ", genericFunction.Arguments.Select(a => $"{a.DataTypeName} {a.Name}"));
+            WriteIndented($"{visibility} {rt} {name}({args})");
+            WriteIndented("{");
+            IndentLevel++;
+            foreach (var bodyLine in genericFunction.Body)
+            {
+                WriteIndented(bodyLine);
+            }
+            IndentLevel--;
+            WriteIndented("}");
+        }
+
+        protected override void RenderGenericProperty(GenericProperty prop)
+        {
+            WriteIndented($"{prop.AccessModifier.ToString().ToLower()} {prop.DataTypeString} {prop.Name} {{ get; set; }}");
+        }
+
+        protected override void RenderGenericVariableDefinition(GenericVariableDefinition variableDefinition)
+        {
+            
         }
     }
 }

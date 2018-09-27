@@ -3,79 +3,103 @@ using Nebula.Models;
 using Nebula.Parser;
 using System.Linq;
 using System;
+using Nebula.Compiler.Abstracts;
+using Nebula.Compiler.Objects;
+using System.Collections.Generic;
 
 namespace Nebula.Renderers
 {
     public abstract class AbstractRenderer
     {
-        public abstract void Render(ProjectNode project, TemplateMeta templateMeta);
+        protected int IndentLevel { get; set; }
 
-        public abstract void PrepareOutputDir(Project project, TemplateMeta templateMeta);
+        protected List<string> CurrentOutput { get; set; }
+        
+        protected AbstractRenderer()
+        {
+            IndentLevel = 0;
+        }
 
+        public void Render(List<OutputFile> outputFiles)
+        {
+            foreach (var file in outputFiles)
+            {
+                var output = new List<string>();
+                CurrentOutput = output;
+                RenderNode(file.Root);
+            }
+        }
+
+        protected string Indent()
+        {
+            if (IndentLevel < 0)
+            {
+                IndentLevel = 0;
+            }
+            return new String('\t', IndentLevel);
+        }
+
+        protected void WriteIndented(string text)
+        {
+            CurrentOutput.Add(Indent() + text);
+        }
+
+        protected void RenderNode(RootObject node)
+        {
+            switch (node)
+            {
+                case AbstractClass<EntityNode> ac:
+                    RenderEntityClass(ac);
+                    break;
+                case AbstractClass<ApiNode> ac:
+                    RenderApiClass(ac);
+                    break;
+                case AbstractConstructor ac:
+                    RenderAbstractConstructor(ac);
+                    break;
+                case AbstractDataType adt:
+                    RenderAbstractDataType(adt);
+                    break;
+                case AbstractFunction af:
+                    RenderAbstractFunction(af);
+                    break;
+                case AbstractNamespace an:
+                    RenderAbstractNamespace(an);
+                    break;
+                case AbstractProperty ap:
+                    RenderAbstractProperty(ap);
+                    break;
+                case GenericClass gc:
+                    RenderGenericClass(gc);
+                    break;
+                case GenericConstructor gc:
+                    RenderGenericConstructor(gc);
+                    break;
+                case GenericProperty gp:
+                    RenderGenericProperty(gp);
+                    break;
+                case GenericVariableDefinition gvd:
+                    RenderGenericVariableDefinition(gvd);
+                    break;
+                case GenericFunction gf:
+                    RenderGenericFunction(gf);
+                    break;
+            }
+        }
+
+        protected abstract void RenderEntityClass(AbstractClass<EntityNode> ac);
+        protected abstract void RenderApiClass(AbstractClass<ApiNode> ac);
+        protected abstract void RenderAbstractConstructor(AbstractConstructor ac);
+        protected abstract string RenderAbstractDataType(AbstractDataType abstractData);
+        protected abstract string RenderAbstractVariableDefinition(AbstractVariableDefinition variable);
+        protected abstract void RenderAbstractFunction(AbstractFunction function);
+        protected abstract void RenderAbstractNamespace(AbstractNamespace ns);
+        protected abstract void RenderAbstractProperty(AbstractProperty prop);
+        protected abstract void RenderGenericClass(GenericClass genericClass);
+        protected abstract void RenderGenericConstructor(GenericConstructor genericConstructor);
+        protected abstract void RenderGenericProperty(GenericProperty prop);
+        protected abstract void RenderGenericVariableDefinition(GenericVariableDefinition variableDefinition);
+        protected abstract void RenderGenericFunction(GenericFunction genericFunction);
         protected abstract string ConvertTypeName(string inputType);
-
-        protected ApiConfig GetApiConfig(ApiNode node)
-        {
-            var config = new ApiConfig { AuthMethod = AuthenticationMethod.NoAuthentication };
-            var configNode = node.SearchByType<ConfigNode>().FirstOrDefault();
-            if (configNode == null)
-            {
-                throw new System.Exception($"Could not find API configuration for {node.Name}");
-            }
-
-            foreach (var configProp in config.GetType().GetProperties())
-            {
-                // find KV pair in config node that matches this property
-                var kvNode = configNode.SearchByType<KeyValueNode>().Where(n => n.Key.ToLower() == configProp.Name.ToLower()).FirstOrDefault();
-                if (kvNode != null)
-                {
-                    if (typeof(AuthenticationMethod).IsAssignableFrom(configProp.PropertyType))
-                    {
-                        if (Enum.TryParse(typeof(AuthenticationMethod), kvNode.Value, true, out var enumVal))
-                        {
-                            configProp.SetValue(config, enumVal);
-                        }
-                        else
-                        {
-                            throw new Exception($"Invalid value for {configProp.Name}");
-                        }
-                    }
-                    else
-                    {
-                        configProp.SetValue(config, kvNode.Value);
-                    }
-                    
-                }
-            }
-
-            return config;
-        }
-
-        protected static void Copy(string sourceDirectory, string targetDirectory)
-        {
-            var diSource = new DirectoryInfo(sourceDirectory);
-            var diTarget = new DirectoryInfo(targetDirectory);
-
-            CopyAll(diSource, diTarget);
-        }
-
-        protected static void CopyAll(DirectoryInfo source, DirectoryInfo target)
-        {
-            Directory.CreateDirectory(target.FullName);
-
-            // Copy each file into the new directory.
-            foreach (var fi in source.GetFiles())
-            {
-                fi.CopyTo(Path.Combine(target.FullName, fi.Name), true);
-            }
-
-            // Copy each subdirectory using recursion.
-            foreach (var diSourceSubDir in source.GetDirectories())
-            {
-                var nextTargetSubDir =
-                    target.CreateSubdirectory(diSourceSubDir.Name);
-                CopyAll(diSourceSubDir, nextTargetSubDir);
-            }
-        }
     }
 }

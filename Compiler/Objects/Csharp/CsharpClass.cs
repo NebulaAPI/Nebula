@@ -59,15 +59,16 @@ namespace Nebula.Compiler.Objects.Csharp
                     break;
             }
 
-            var funcs = new List<AbstractFunction>
+            var funcs = new List<GenericFunction>
             {
-                new AbstractFunction
+                new GenericFunction
                 {
                     Name = "Authenticate",
-                    Arguments = new List<AbstractVariableDefinition>
+                    ReturnType = "void",
+                    Arguments = new List<GenericVariableDefinition>
                     {
-                        new AbstractVariableDefinition("client", "IRestClient"),
-                        new AbstractVariableDefinition("request", "IRestRequest")
+                        new GenericVariableDefinition("client", "IRestClient"),
+                        new GenericVariableDefinition("request", "IRestRequest")
                     },
                     Body = body
                 }

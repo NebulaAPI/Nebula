@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Nebula.Parser;
 using Nebula.Renderers;
+using Nebula.Compiler;
 
 namespace Nebula.Services
 {
@@ -137,10 +138,12 @@ namespace Nebula.Services
                     throw new Exception("Could not find template data for template: " + template);
                 }
                 
-                var renderer = RendererFactory.Get(t.Language);
                 var templateMeta = ts.GetTemplateMeta(template);
-                renderer.PrepareOutputDir(p, templateMeta);
-                renderer.Render(projectNode, templateMeta);
+                var compiler = CompilerFactory.Get(t.Language, p, projectNode, templateMeta);
+                var renderer = RendererFactory.Get(t.Language);
+                
+                //renderer.PrepareOutputDir(p, templateMeta);
+                renderer.Render(compiler.OutputFiles);
             }
             
         }

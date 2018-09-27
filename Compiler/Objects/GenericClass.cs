@@ -9,15 +9,15 @@ namespace Nebula.Compiler.Objects
 
         public List<GenericProperty> Properties { get; set; }
 
-        public AbstractConstructor Constructor { get; set; }
+        public GenericConstructor Constructor { get; set; }
 
-        public List<AbstractFunction> Functions { get; set; }
+        public List<GenericFunction> Functions { get; set; }
 
         public GenericClass()
         {
             Inheritence = new List<GenericClass>();
             Properties = new List<GenericProperty>();
-            Functions = new List<AbstractFunction>();
+            Functions = new List<GenericFunction>();
         }
     }
 }
