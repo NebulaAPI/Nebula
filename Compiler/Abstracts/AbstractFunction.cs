@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Nebula.Compiler.Objects;
 using Nebula.Parser;
 
@@ -11,22 +12,16 @@ namespace Nebula.Compiler.Abstracts
     {
         public FunctionNode Node { get; set; }
 
-        public string ReturnTypeString { get; set; }
+        public AbstractDataType ReturnType { get; set; }
 
         public List<AbstractVariableDefinition> Arguments { get; set; }
 
-        public List<string> Body { get; set; }
-        
-        public AbstractFunction(FunctionNode node) : this()
+        public AbstractFunction(FunctionNode node)
         {
             Name = node.Name;
             Node = node;
-        }
-
-        public AbstractFunction()
-        {
-            Arguments = new List<AbstractVariableDefinition>();
-            Body = new List<string>();
+            ReturnType = new AbstractDataType(node.ReturnType);
+            Arguments = node.Args.Select(a => new AbstractVariableDefinition(a)).ToList();
         }
     }
 }

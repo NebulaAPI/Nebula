@@ -8,6 +8,8 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Nebula.Parser;
 using Nebula.Renderers;
+using Nebula.Compiler;
+using Nebula.Util;
 
 namespace Nebula.Services
 {
@@ -131,18 +133,40 @@ namespace Nebula.Services
 
             foreach (var template in p.Templates)
             {
-                var t = ts.GetTemplate(template);
-                if (t == null)
-                {
-                    throw new Exception("Could not find template data for template: " + template);
-                }
+                var t = ts.GetTemplate(template) ?? throw new Exception("Could not find template data for template: " + template);
                 
-                var renderer = RendererFactory.Get(t.Language);
                 var templateMeta = ts.GetTemplateMeta(template);
-                renderer.PrepareOutputDir(p, templateMeta);
-                renderer.Render(projectNode, templateMeta);
+                var compiler = CompilerFactory.Get(t.Language, p, projectNode, templateMeta);
+                var renderer = RendererFactory.Get(t.Language, compiler);
+                
+                var destinationDirectory = PrepareOutputDir(p, templateMeta);
+                renderer.Render(compiler.OutputFiles);
+                foreach (var file in compiler.OutputFiles)
+                {
+                    var outputFileName = Path.Join(destinationDirectory, file.FileName);
+                    File.WriteAllText(outputFileName, file.GetFileContent());
+                }
+            }
+        }
+
+        private string PrepareOutputDir(Project project, TemplateMeta templateMeta)
+        {
+            // here we need to copy the template folder to the output directory
+            // and customize the template
+            var templateName = templateMeta.TemplateData.Name;
+            var sourceTemplatePath = Path.Join(project.TemplateDirectory, templateName);
+            var destTemplatePath = Path.Join(project.OutputDirectory, $"{project.Name}-{templateName}");
+
+            if (Directory.Exists(destTemplatePath))
+            {
+                Directory.Delete(destTemplatePath, true);
             }
             
+            FileUtil.Copy(sourceTemplatePath, destTemplatePath);
+
+            var ts = new TemplateService(project, null);
+            ts.CustomizeTemplate(destTemplatePath, templateMeta.TemplateData.Name);
+            return destTemplatePath;
         }
 
         private ModuleNode BuildModule(string inputFile)
