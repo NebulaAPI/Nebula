@@ -11,13 +11,20 @@ namespace Nebula.Renderers
 {
     public abstract class AbstractRenderer
     {
+        private const int TAB_SIZE = 4;
+        
         protected int IndentLevel { get; set; }
 
         protected List<string> CurrentOutput { get; set; }
+
+        protected AbstractCompiler Compiler { get; set; }
+
+        protected ApiConfig ActiveConfig { get; set; }
         
-        protected AbstractRenderer()
+        protected AbstractRenderer(AbstractCompiler compiler)
         {
             IndentLevel = 0;
+            Compiler = compiler;
         }
 
         public void Render(List<OutputFile> outputFiles)
@@ -27,6 +34,7 @@ namespace Nebula.Renderers
                 var output = new List<string>();
                 CurrentOutput = output;
                 RenderNode(file.Root);
+                file.RawContent = output;
             }
         }
 
@@ -36,12 +44,20 @@ namespace Nebula.Renderers
             {
                 IndentLevel = 0;
             }
-            return new String('\t', IndentLevel);
+            return new String(' ', IndentLevel * TAB_SIZE);
         }
 
         protected void WriteIndented(string text)
         {
             CurrentOutput.Add(Indent() + text);
+        }
+
+        protected void WriteIndented(List<string> text)
+        {
+            foreach (var t in text)
+            {
+                WriteIndented(t);
+            }
         }
 
         protected void RenderNode(RootObject node)
@@ -98,8 +114,32 @@ namespace Nebula.Renderers
         protected abstract void RenderGenericClass(GenericClass genericClass);
         protected abstract void RenderGenericConstructor(GenericConstructor genericConstructor);
         protected abstract void RenderGenericProperty(GenericProperty prop);
-        protected abstract void RenderGenericVariableDefinition(GenericVariableDefinition variableDefinition);
+        protected abstract string RenderGenericVariableDefinition(GenericVariableDefinition variableDefinition);
         protected abstract void RenderGenericFunction(GenericFunction genericFunction);
         protected abstract string ConvertTypeName(string inputType);
+
+        protected void RenderGenericProperties(List<GenericProperty> properties)
+        {
+            foreach (var prop in properties)
+            {
+                RenderGenericProperty(prop);
+            }
+        }
+
+        protected void RenderGenericFunctions(List<GenericFunction> functions)
+        {
+            foreach (var func in functions)
+            {
+                RenderGenericFunction(func);
+            }
+        }
+
+        protected void RenderNodes<T>(List<T> nodes) where T : RootObject
+        {
+            foreach (var node in nodes)
+            {
+                RenderNode(node);
+            }
+        }
     }
 }
