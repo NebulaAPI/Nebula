@@ -16,6 +16,7 @@ namespace Nebula.Compiler.Abstracts
         {
             Name = node.Name;
             Node = node;
+            DataType = new AbstractDataType(node.ArgType);
         }
     }
 }

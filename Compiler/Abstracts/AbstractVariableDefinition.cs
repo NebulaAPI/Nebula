@@ -18,6 +18,7 @@ namespace Nebula.Compiler.Abstracts
         {
             Node = node;
             Name = node.Name;
+            DataType = new AbstractDataType(node.ArgType);
         }
 
         public AbstractVariableDefinition(string name, string type)

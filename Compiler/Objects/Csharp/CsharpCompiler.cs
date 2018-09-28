@@ -37,8 +37,8 @@ namespace Nebula.Compiler.Objects.Csharp
             var entityClasses = GetClassesByType<EntityNode, CsharpEntityClass>(entityNamespace, this);
             var clientClasses = GetClassesByType<ApiNode, CsharpClientClass>(clientNamespace, this);
 
-            OutputFiles.AddRange(entityClasses.Select(c => new OutputFile(c)));
-            OutputFiles.AddRange(clientClasses.Select(c => new OutputFile(c)));
+            OutputFiles.AddRange(entityClasses.Select(c => new CsharpOutputFile(c, templateData)));
+            OutputFiles.AddRange(clientClasses.Select(c => new CsharpOutputFile(c, templateData)));
         }
     }
 }
