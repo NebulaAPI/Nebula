@@ -16,6 +16,9 @@ namespace Nebula.Services
     public class ProjectService
     {
         private Project CurrentProject { get; set; }
+        private int BuildProgress { get; set; }
+        private int BuildCount { get; set; }
+        private int TotalFiles { get; set; }
         
         /// <summary>
         /// Creates a new project
@@ -28,9 +31,9 @@ namespace Nebula.Services
             var p = new Project 
             { 
                 Name = name,
-                Version = "1.0.0",
+                Version = "1.0.0", // FIXME: set version
                 Author = Environment.UserName,
-                Company = "Some Company"
+                Company = "Some Company"  // FIXME: set company name
             };
             var repoPath = Path.Join(location, name);
 
@@ -122,6 +125,9 @@ namespace Nebula.Services
             // first we need to build a list of files to be parsed, including their directory structure
             var files = new List<string>();
             GenerateFileList(p.SourceDirectory, files);
+            TotalFiles = files.Count;
+            BuildCount = 0;
+            BuildProgress = 0;
             var modules = new List<ModuleNode>();
             
             // Build and validate the AST for the entire project
@@ -171,9 +177,12 @@ namespace Nebula.Services
 
         private ModuleNode BuildModule(string inputFile)
         {
+            BuildCount++;
+            BuildProgress = (BuildCount / TotalFiles) * 100;
+            Console.WriteLine($"[{BuildCount}/{TotalFiles} ({BuildProgress}%)] Processing {inputFile}");
             var moduleName = inputFile.Replace(Path.DirectorySeparatorChar, '.').Replace(".neb", "");
             var absoluteFile = Path.Join(CurrentProject.SourceDirectory, Path.DirectorySeparatorChar.ToString(), inputFile);
-            var parser = new Parser.Parser(absoluteFile);
+            var parser = new Parser.NebulaParser(absoluteFile);
             return parser.Parse(moduleName);
         }
 

@@ -1,19 +1,39 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+
 namespace Nebula.Parser
 {
     public class InputStream
     {
-        private int Pos { get; set; }
-        private int Line { get; set; }
-        private int Col { get; set; }
+        public int Pos { get; set; }
+        public int Line { get; set; }
+        public int Col { get; set; }
         private string Input { get; set; }
         private char[] InputArray { get; set; }
-        public InputStream(string input)
+        public string[] Lines { get; set; }
+        public string FileName { get; set; }
+
+        public InputStream()
         {
             Pos = 0;
             Line = 1;
             Col = 0;
+        }
+
+        public InputStream(string input) : this()
+        {
             Input = input;
             InputArray = input.ToCharArray();
+            Lines = new string[] {};
+        }
+
+        public InputStream(FileInfo inputFile)
+        {
+            Input = inputFile.OpenText().ReadToEnd();
+            InputArray = Input.ToCharArray();
+            Lines = Input.Split('\n', StringSplitOptions.None);
+            FileName = inputFile.FullName;
         }
 
         /// <summary>
@@ -69,7 +89,14 @@ namespace Nebula.Parser
         /// <param name="msg"></param>
         public void Error(string msg)
         {
-            throw new System.Exception($"{msg} {Line}:{Col}");
+            var err = new [] {
+                FileName + ": ",
+                Lines[Line],
+                new String(' ', Col) + "^",
+                $"[{Line}:{Col}] {msg}"
+            };
+            
+            throw new System.Exception(string.Join('\n', err));
         }
     }
 }

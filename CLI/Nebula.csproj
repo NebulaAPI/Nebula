@@ -11,6 +11,7 @@
     <PackageReference Include="LibGit2Sharp.NativeBinaries" Version="1.0.217" />
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.2.5" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="SharpPad" Version="1.0.4" />
   </ItemGroup>
 
 </Project>

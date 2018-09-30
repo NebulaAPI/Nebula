@@ -5,16 +5,20 @@ using Nebula.Parser;
 using McMaster.Extensions.CommandLineUtils;
 using Nebula.Services;
 using System.Linq;
+using Nebula.Generators;
 
 namespace Nebula
 {
     [Command(Name = "nebula", Description = "REST API Client Library Generator"),
         Subcommand("new", typeof(NewProject)), 
         Subcommand("build", typeof(BuildProject)), 
-        Subcommand("template", typeof(TemplateOptions))
+        Subcommand("template", typeof(TemplateOptions)),
+        Subcommand("generate", typeof(GenerateOptions))
     ]
     class Nebula
     {
+        private const string MANIFEST_GIT_REPO = "https://github.com/JasonMiesionczek/Nebula-template-manifest.git";
+        
         public static void Main(string[] args) => CommandLineApplication.Execute<Nebula>(args);
         // public static void Main(string[] args)
         // {
@@ -70,6 +74,7 @@ namespace Nebula
                     var project = ps.LoadProject(Environment.CurrentDirectory);
                     console.WriteLine($"Building {project.Name}...");
                     ps.BuildProject(project);
+                    console.WriteLine("Build completed successfully.");
                     return 0;
                 }
                 catch (Exception e)
@@ -77,6 +82,41 @@ namespace Nebula
                     console.Error.WriteLine(e.Message);
                     console.Error.WriteLine(e.StackTrace);
                     return 1;
+                }
+            }
+        }
+
+        [Command("generate", Description = "Tools for generating entities"),
+            Subcommand("entity", typeof(GenerateEntityOption))]
+        private class GenerateOptions
+        {
+            private int OnExecute(IConsole console)
+            {
+                return 0;
+            }
+
+            [Command("entity", Description = "Generate entities from provided JSON")]
+            private class GenerateEntityOption
+            {
+                [Required(ErrorMessage = "You must specify the source data")]
+                [Argument(0, Description = "JSON content from which to generate entities")]
+                public string Data { get; }
+                private int OnExecute(IConsole console)
+                {
+                    var ps = new ProjectService();
+                    try
+                    {
+                        var project = ps.LoadProject(Environment.CurrentDirectory);
+                        var generator = new EntityGenerator(project, Data);
+                        generator.GenerateEntityFromJSON();
+                        return 0;
+                    }
+                    catch (Exception e)
+                    {
+                        console.Error.WriteLine(e.Message);
+                        console.Error.WriteLine(e.StackTrace);
+                        return 1;
+                    }
                 }
             }
         }
@@ -104,7 +144,7 @@ namespace Nebula
                     {
                         var ps = new ProjectService();
                         var project = ps.LoadProject(Environment.CurrentDirectory);
-                        var ts = new TemplateService(project, "https://github.com/JasonMiesionczek/Nebula-template-manifest.git");
+                        var ts = new TemplateService(project, MANIFEST_GIT_REPO);
                         
                         ts.GetOrUpdateManifest();
                         return 0;
@@ -127,7 +167,7 @@ namespace Nebula
                     {
                         var ps = new ProjectService();
                         var project = ps.LoadProject(Environment.CurrentDirectory);
-                        var ts = new TemplateService(project, "https://github.com/JasonMiesionczek/Nebula-template-manifest.git");
+                        var ts = new TemplateService(project, MANIFEST_GIT_REPO);
                         
                         var templates = ts.GetTemplates();
                         foreach (var t in templates)
@@ -156,7 +196,7 @@ namespace Nebula
                     {
                         var ps = new ProjectService();
                         var project = ps.LoadProject(Environment.CurrentDirectory);
-                        var ts = new TemplateService(project, "https://github.com/JasonMiesionczek/Nebula-template-manifest.git");
+                        var ts = new TemplateService(project, MANIFEST_GIT_REPO);
                         
                         var template = ts.GetTemplates().FirstOrDefault(t => t.Name == Name);
                         if (template != null)
@@ -193,7 +233,7 @@ namespace Nebula
                     {
                         var ps = new ProjectService();
                         var project = ps.LoadProject(Environment.CurrentDirectory);
-                        var ts = new TemplateService(project, "https://github.com/JasonMiesionczek/Nebula-template-manifest.git");
+                        var ts = new TemplateService(project, MANIFEST_GIT_REPO);
                         
                         ts.RemoveTemplateFromProject(Name);
                         ps.SaveProject(project);
