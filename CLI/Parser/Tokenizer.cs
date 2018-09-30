@@ -8,6 +8,7 @@ namespace Nebula.Parser
     {
         Number,
         String,
+        Boolean,
         Keyword,
         Variable,
         Punctuation,
@@ -23,6 +24,10 @@ namespace Nebula.Parser
     {
         public string Value { get; private set; }
         public TokenType Type { get; private set; }
+        public int Line { get; set; }
+        public int StartPos { get; set; }
+        public int Length { get; set; }
+        public string LineText { get; set; }
 
         public Token(TokenType type, string value)
         {
@@ -46,9 +51,21 @@ namespace Nebula.Parser
             Stream = stream;
             Keywords = new List<string>
             {
-                "entity", "api", "func", "exception", "export", "use", "config"
+                "entity", "api", "func", "exception", "export", "use", "config", "true", "false"
             };
 
+        }
+
+        private Token GenerateToken(TokenType type, string value)
+        {
+            var token = new Token(type, value);
+
+            token.Line = Stream.Line;
+            token.StartPos = Stream.Col - value.Length;
+            token.Length = value.Length;
+            token.LineText = Stream.Lines.Length >= token.Line ? Stream.Lines[token.Line] : "";
+
+            return token;
         }
 
         private bool IsKeyword(string s)
@@ -96,7 +113,7 @@ namespace Nebula.Parser
             return str;
         }
 
-        private Token ReadNumber()
+        private Token ReadNumber(bool negative = false)
         {
             var hasDot = false;
             var number = ReadWhile((ch) => {
@@ -111,7 +128,7 @@ namespace Nebula.Parser
                 }
                 return IsDigit(ch);
             });
-            return new Token(TokenType.Number, number);
+            return GenerateToken(TokenType.Number, (negative ? "-" : "") + number);
         }
 
         private Token ReadIdent()
@@ -119,10 +136,25 @@ namespace Nebula.Parser
             var id = ReadWhile(IsId);
             if (IsKeyword(id))
             {
-                return new Token(TokenType.Keyword, id);
+                if (id == "true" || id == "false")
+                {
+                    return GenerateToken(TokenType.Boolean, id);
+                }
+                return GenerateToken(TokenType.Keyword, id);
             }
 
-            return new Token(TokenType.Variable, id);
+            return GenerateToken(TokenType.Variable, id);
+        }
+
+        private Token ReadNegativeNumber()
+        {
+            Stream.Next();
+            var ch = Stream.Peek();
+            if (IsDigit(ch))
+            {
+                return ReadNumber(true);
+            }
+            return ReadNext();
         }
 
         private string ReadEscaped(char end)
@@ -156,7 +188,7 @@ namespace Nebula.Parser
 
         private Token ReadString()
         {
-            return new Token(TokenType.String, ReadEscaped('"'));
+            return GenerateToken(TokenType.String, ReadEscaped('"'));
         }
 
         private void SkipComment()
@@ -176,6 +208,11 @@ namespace Nebula.Parser
             }
 
             var ch = Stream.Peek();
+            if (ch == '-')
+            {
+                return ReadNegativeNumber();
+            }
+
             if (ch == '#')
             {
                 SkipComment();
@@ -199,7 +236,7 @@ namespace Nebula.Parser
 
             if (IsPunc(ch))
             {
-                return new Token(TokenType.Punctuation, Stream.Next().ToString());
+                return GenerateToken(TokenType.Punctuation, Stream.Next().ToString());
             }
 
             if (IsOpChar(ch))
@@ -207,12 +244,12 @@ namespace Nebula.Parser
                 var opChar = ReadWhile(IsOpChar);
                 switch (opChar)
                 {
-                    case "<<": return new Token(TokenType.GetFunction, opChar);
-                    case ">>": return new Token(TokenType.PostFunction, opChar);
-                    case ">|": return new Token(TokenType.PutFunction, opChar);
-                    case "><": return new Token(TokenType.DeleteFunction, opChar);
-                    case "->": return new Token(TokenType.ReturnValue, opChar);
-                    default: return new Token(TokenType.Operation, opChar);
+                    case "<<": return GenerateToken(TokenType.GetFunction, opChar);
+                    case ">>": return GenerateToken(TokenType.PostFunction, opChar);
+                    case ">|": return GenerateToken(TokenType.PutFunction, opChar);
+                    case "><": return GenerateToken(TokenType.DeleteFunction, opChar);
+                    case "->": return GenerateToken(TokenType.ReturnValue, opChar);
+                    default: return GenerateToken(TokenType.Operation, opChar);
                 }
             }
             Stream.Error("Can't handle character: " + ch);
