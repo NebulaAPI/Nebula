@@ -113,9 +113,16 @@ namespace Nebula.Parser
             return str;
         }
 
-        private Token ReadNumber(bool negative = false)
+        private Token ReadNumber()
         {
             var hasDot = false;
+            var negative = false;
+
+            if (CurrentToken != null && CurrentToken.Type == TokenType.Operation && CurrentToken.Value == "-")
+            {
+                negative = true;
+            }
+
             var number = ReadWhile((ch) => {
                 if (ch == '.')
                 {
@@ -152,7 +159,7 @@ namespace Nebula.Parser
             var ch = Stream.Peek();
             if (IsDigit(ch))
             {
-                return ReadNumber(true);
+                return ReadNumber();
             }
             return ReadNext();
         }
@@ -208,10 +215,10 @@ namespace Nebula.Parser
             }
 
             var ch = Stream.Peek();
-            if (ch == '-')
-            {
-                return ReadNegativeNumber();
-            }
+            // if (ch == '-')
+            // {
+            //     return ReadNegativeNumber();
+            // }
 
             if (ch == '#')
             {
