@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using SharpPad;
 
 namespace Nebula.Parser
 {
@@ -62,6 +63,7 @@ namespace Nebula.Parser
                     var root = new JsonObject();
                     var objs = Delimited<JsonObject>('{', '}', ',', ParseObject);
                     root.Objects.Add("", objs.FirstOrDefault());
+                    root.Dump();
                     return root;
                 }
 
@@ -87,6 +89,7 @@ namespace Nebula.Parser
                 || token.Type == TokenType.Number 
                 || token.Type == TokenType.Keyword
                 || token.Type == TokenType.Boolean
+                || (token.Type == TokenType.Operation && token.Value == "-")
                 ? token : null;
         }
 
@@ -120,10 +123,25 @@ namespace Nebula.Parser
             var token = IsValue();
             if (token != null)
             {
-                array.Values.Add(new JsonValue(token.Value));
+                array.Values.Add(ParseValue(token));
                 Tokenizer.Next();
             }
             return array;
+        }
+
+        private JsonValue ParseValue(Token valueToken)
+        {
+            var token = IsOp("-");
+            if (token != null)
+            {
+                Tokenizer.Next();
+                var nextToken = IsValue();
+                if (nextToken != null)
+                {
+                    return new JsonValue("-" + nextToken.Value);
+                }
+            }
+            return new JsonValue(valueToken.Value);
         }
 
         private JsonObject ParseObject()
@@ -149,7 +167,7 @@ namespace Nebula.Parser
                 var subtoken = IsValue();
                 if (subtoken != null)
                 {
-                    obj.Values.Add(token.Value, new JsonValue(subtoken.Value));
+                    obj.Values.Add(token.Value, ParseValue(subtoken));
                     Tokenizer.Next();
                 }
             }            
