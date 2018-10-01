@@ -64,7 +64,7 @@ namespace Nebula.Compiler.Abstracts
                 {
                     if (typeof(AuthenticationMethod).IsAssignableFrom(configProp.PropertyType))
                     {
-                        if (Enum.TryParse(typeof(AuthenticationMethod), kvNode.Value, true, out var enumVal))
+                        if (Enum.TryParse<AuthenticationMethod>(kvNode.Value, true, out var enumVal))
                         {
                             configProp.SetValue(config, enumVal);
                         }

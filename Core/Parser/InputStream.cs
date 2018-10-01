@@ -32,7 +32,7 @@ namespace Nebula.Parser
         {
             Input = inputFile.OpenText().ReadToEnd();
             InputArray = Input.ToCharArray();
-            Lines = Input.Split('\n', StringSplitOptions.None);
+            Lines = Input.Split('\n');
             FileName = inputFile.FullName;
         }
 
@@ -96,7 +96,7 @@ namespace Nebula.Parser
                 $"[{Line}:{Col}] {msg}"
             };
             
-            throw new System.Exception(string.Join('\n', err));
+            throw new System.Exception(string.Join("\n", err));
         }
     }
 }

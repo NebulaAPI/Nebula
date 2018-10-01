@@ -11,10 +11,10 @@ namespace Nebula.Compiler.Objects.Csharp
             switch (root)
             {
                 case CsharpEntityClass e:
-                    FileName = Path.Join(meta.EntityLocation, $"{e.Name}.{GetFileExtension()}");
+                    FileName = Path.Combine(meta.EntityLocation, $"{e.Name}.{GetFileExtension()}");
                     break;
                 case CsharpClientClass c:
-                    FileName = Path.Join(meta.ClientLocation, $"{c.Name}Client.{GetFileExtension()}");
+                    FileName = Path.Combine(meta.ClientLocation, $"{c.Name}Client.{GetFileExtension()}");
                     break;
             }
         }
