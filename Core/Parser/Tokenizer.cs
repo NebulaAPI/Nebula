@@ -116,12 +116,6 @@ namespace Nebula.Parser
         private Token ReadNumber()
         {
             var hasDot = false;
-            var negative = false;
-
-            if (CurrentToken != null && CurrentToken.Type == TokenType.Operation && CurrentToken.Value == "-")
-            {
-                negative = true;
-            }
 
             var number = ReadWhile((ch) => {
                 if (ch == '.')
@@ -135,7 +129,7 @@ namespace Nebula.Parser
                 }
                 return IsDigit(ch);
             });
-            return GenerateToken(TokenType.Number, (negative ? "-" : "") + number);
+            return GenerateToken(TokenType.Number, number);
         }
 
         private Token ReadIdent()
