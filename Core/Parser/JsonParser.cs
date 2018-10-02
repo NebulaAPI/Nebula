@@ -10,33 +10,18 @@ namespace Nebula.Parser
 
         public dynamic Value { get; set; }
 
-        public bool IsObject
-        {
-            get
-            {
-                return !Children.Any(c => c.Name == null);
-            }
-        }
-
-        public bool IsArray
-        {
-            get
-            {
-                return Children.All(c => c.Name == null);
-            }
-        }
-
-        public bool IsValue
-        {
-            get
-            {
-                return !IsObject && !IsArray;
-            }
-        }
+        public bool IsObject { get; set; }
+        
+        public bool IsArray { get; set; }
+        
+        public bool IsValue { get; set; }
         
         public JsonObject() : base("jobj")
         {
             Children = new List<JsonObject>();
+            IsArray = false;
+            IsObject = false;
+            IsValue = false;
         }
     }
 
@@ -61,7 +46,7 @@ namespace Nebula.Parser
 
         private JsonObject ParseRootObject()
         {
-            var obj = new JsonObject();
+            var obj = new JsonObject() { IsObject = true };
 
             if (IsPunc('{'))
             {
@@ -90,6 +75,7 @@ namespace Nebula.Parser
                 Unexpected();
             }
             obj.Name = token.Value;
+            obj.IsObject = true;
             Tokenizer.Next();
             SkipPunc(':');
 
@@ -100,6 +86,8 @@ namespace Nebula.Parser
             if (nextToken != null)
             {
                 obj.Value = ParseValue(nextToken);
+                obj.IsObject = false;
+                obj.IsValue = true;
             }
 
             if (IsObject())
@@ -118,6 +106,7 @@ namespace Nebula.Parser
         private JsonObject ParseArray()
         {
             var obj = new JsonObject();
+            obj.IsArray = true;
             
             if (IsArray())
             {
@@ -133,6 +122,7 @@ namespace Nebula.Parser
             if (token != null)
             {
                 var newObject = new JsonObject();
+                newObject.IsValue = true;
                 newObject.Value = ParseValue(token);
                 obj.Children.Add(newObject);
             }
