@@ -38,11 +38,37 @@ namespace Core.Tests.Parser
             func getDevices() << ""/devices"" -> array[Device]
         }
         ";
+
+        private const string COMPLEX_API = @"
+        api ComplexApi {
+            config {
+                host =""http://somehost.com"",
+                prefix = ""/api"",
+                authMethod = OAuthToken
+            }
+
+            func getDevices() << ""/devices"" -> array[Device]
+
+            func getDeviceById(id: integer) << ""/device/{id}"" -> Device
+        }
+        ";
         
         [SetUp]
         public void Setup()
         {
 
+        }
+
+        [Test]
+        public void ComplexApiTest()
+        {
+            var stream = new InputStream(COMPLEX_API);
+            var tokenizer = new Tokenizer(stream);
+            var parser = new NebulaParser(tokenizer);
+            var result = parser.Parse("sampleModule");
+
+            var api = result.SearchByType<ApiNode>().FirstOrDefault();
+            Assert.NotNull(api);
         }
 
         [Test]

@@ -17,6 +17,7 @@ namespace Nebula.Parser
         PostFunction,
         PutFunction,
         DeleteFunction,
+        PatchFunction,
         ReturnValue
     }
     
@@ -249,6 +250,7 @@ namespace Nebula.Parser
                     case ">>": return GenerateToken(TokenType.PostFunction, opChar);
                     case ">|": return GenerateToken(TokenType.PutFunction, opChar);
                     case "><": return GenerateToken(TokenType.DeleteFunction, opChar);
+                    case ">@": return GenerateToken(TokenType.PatchFunction, opChar);
                     case "->": return GenerateToken(TokenType.ReturnValue, opChar);
                     default: return GenerateToken(TokenType.Operation, opChar);
                 }
