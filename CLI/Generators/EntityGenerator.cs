@@ -29,42 +29,50 @@ namespace Nebula.Generators
                 var tokens = new Tokenizer(stream);
                 var parser = new JsonParser(tokens);
                 var root = parser.Parse();
-                switch (root)
-                {
-                    case JsonObject jsonObject:
-                        FindAndPrompt(jsonObject);
-                        break;
-                }
-                root.Dump();
+                
+                FindAndPrompt(root, null);
+                NewEntities.DumpBlocking();
             }
         }
 
-        private void FindAndPrompt(JsonObject obj)
+        private string Prompt(string prompt)
         {
-            if (obj.Objects.Count > 0)
-            {
-                foreach (var key in obj.Objects.Keys)
-                {
-                    var valueName = "";
-                    if (key == "")
-                    {
-                        valueName = "Object";
-                    }
-                    else
-                    {
-                        valueName = key;
-                    }
+            Console.Write(prompt);
+            return Console.ReadLine();
+        }
 
-                    var newEntity = new Entity();
-                    Console.Write($"Enter name for root entity ({valueName}): ");
-                    var name = Console.ReadLine();
-                    newEntity.Name = name;
-                    if (obj.Objects[key].Values.Count > 0)
-                    {
-                        
-                    }
+        private Entity FindAndPrompt(JsonObject obj, Entity parentEntity)
+        {
+            if (obj.IsObject)
+            {
+                var newEntity = new Entity();
+                NewEntities.Add(newEntity);
+                
+                if (parentEntity == null)
+                {
+                    newEntity.Name = Prompt("Enter name for root entity: ");
                 }
+                else
+                {
+                    var name = Prompt($"Enter name of sub-object of {parentEntity.Name} and property {obj.Name}: ");
+                    newEntity.Name = name;
+                    parentEntity.Fields.Add(new EntityField() { Name = name, Type = "FIXME"});
+                }
+
+                foreach (var child in obj.Children)
+                {
+                    FindAndPrompt(child, newEntity);
+                }
+                return newEntity;
             }
+
+            if (obj.IsValue && parentEntity != null)
+            {
+                parentEntity.Fields.Add(new EntityField() { Name = obj.Name, Type = "FIXME"});
+                return parentEntity;
+            }
+
+            return null;
         }
     }
 }

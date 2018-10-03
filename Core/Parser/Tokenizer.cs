@@ -17,6 +17,7 @@ namespace Nebula.Parser
         PostFunction,
         PutFunction,
         DeleteFunction,
+        PatchFunction,
         ReturnValue
     }
     
@@ -116,12 +117,6 @@ namespace Nebula.Parser
         private Token ReadNumber()
         {
             var hasDot = false;
-            var negative = false;
-
-            if (CurrentToken != null && CurrentToken.Type == TokenType.Operation && CurrentToken.Value == "-")
-            {
-                negative = true;
-            }
 
             var number = ReadWhile((ch) => {
                 if (ch == '.')
@@ -135,7 +130,7 @@ namespace Nebula.Parser
                 }
                 return IsDigit(ch);
             });
-            return GenerateToken(TokenType.Number, (negative ? "-" : "") + number);
+            return GenerateToken(TokenType.Number, number);
         }
 
         private Token ReadIdent()
@@ -255,6 +250,7 @@ namespace Nebula.Parser
                     case ">>": return GenerateToken(TokenType.PostFunction, opChar);
                     case ">|": return GenerateToken(TokenType.PutFunction, opChar);
                     case "><": return GenerateToken(TokenType.DeleteFunction, opChar);
+                    case ">@": return GenerateToken(TokenType.PatchFunction, opChar);
                     case "->": return GenerateToken(TokenType.ReturnValue, opChar);
                     default: return GenerateToken(TokenType.Operation, opChar);
                 }

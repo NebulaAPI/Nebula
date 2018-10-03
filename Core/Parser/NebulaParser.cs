@@ -129,7 +129,8 @@ namespace Nebula.Parser
                 (token.Type == TokenType.GetFunction ||
                  token.Type == TokenType.PostFunction ||
                  token.Type == TokenType.PutFunction ||
-                 token.Type == TokenType.DeleteFunction) &&
+                 token.Type == TokenType.DeleteFunction ||
+                 token.Type == TokenType.PatchFunction) &&
                  (op == null || op == token.Value)
                 )
             {
