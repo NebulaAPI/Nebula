@@ -54,6 +54,7 @@ namespace Nebula.Renderers
                 case TokenType.PostFunction: return "Method.POST";
                 case TokenType.PutFunction: return "Method.PUT";
                 case TokenType.DeleteFunction: return "Method.DELETE";
+                case TokenType.PatchFunction: return "Method.PATCH";
                 default: throw new System.Exception("Unknown function method type");
             }
         }
