@@ -10,6 +10,7 @@ using Nebula.Parser;
 using Nebula.Renderers;
 using Nebula.Compiler;
 using Nebula.Util;
+using Core.Models;
 
 namespace Core.Services
 {
@@ -38,7 +39,7 @@ namespace Core.Services
             var repoPath = Path.Combine(location, name);
 
             // TODO: make this path a config setting
-            Repository.Clone("https://github.com/JasonMiesionczek/Nebula-project-skeleton.git", repoPath);
+            Repository.Clone(NebulaConfig.ProjectSkeletonRepo, repoPath);
             Directory.Delete(Path.Combine(repoPath, ".git"), true);
             Repository.Init(repoPath);
             UpdateProjectConfig(p, repoPath);
@@ -144,7 +145,7 @@ namespace Core.Services
                 
                 var templateMeta = ts.GetTemplateMeta(template);
 
-                var templatePluginFileFolder = Path.Combine(p.TemplateDirectory, t.Name, templateMeta.PluginLocation);
+                var templatePluginFileFolder = Path.Combine(p.TemplateDirectory, t.Name, templateMeta.PluginLocation.Trim(Path.DirectorySeparatorChar));
                 var pluginFiles = new List<string>();
                 GenerateFileList(templatePluginFileFolder, pluginFiles, ".cs");
                 
@@ -168,7 +169,7 @@ namespace Core.Services
             // here we need to copy the template folder to the output directory
             // and customize the template
             var templateName = templateMeta.TemplateData.Name;
-            var sourceTemplatePath = Path.Combine(project.TemplateDirectory, templateName, templateMeta.TemplateLocation);
+            var sourceTemplatePath = Path.Combine(project.TemplateDirectory, templateName, templateMeta.TemplateLocation.Trim(Path.DirectorySeparatorChar));
             var destTemplatePath = Path.Combine(project.OutputDirectory, $"{project.Name}-{templateName}");
 
             if (Directory.Exists(destTemplatePath))
@@ -189,12 +190,12 @@ namespace Core.Services
             BuildProgress = (BuildCount / TotalFiles) * 100;
             Console.WriteLine($"[{BuildCount}/{TotalFiles} ({BuildProgress}%)] Processing {inputFile}");
             var moduleName = inputFile.Replace(Path.DirectorySeparatorChar, '.').Replace(".neb", "");
-            var absoluteFile = Path.Combine(CurrentProject.SourceDirectory, Path.DirectorySeparatorChar.ToString(), inputFile);
+            var absoluteFile = Path.Combine(CurrentProject.SourceDirectory, inputFile);
             var parser = new NebulaParser(absoluteFile);
             return parser.Parse(moduleName);
         }
 
-        private void GenerateFileList(string folder, List<string> allFiles, string ext = "*.neb")
+        private void GenerateFileList(string folder, List<string> allFiles, string ext = ".neb")
         {
             var filesInThisFolder = Directory
                 .GetFiles(folder)

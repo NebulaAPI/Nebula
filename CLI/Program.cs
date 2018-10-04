@@ -8,14 +8,10 @@ using System.Linq;
 using Nebula.Generators;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
+using Core.Models;
 
 namespace Nebula
 {
-    public static class NebulaConfig
-    {
-        public static string TemplateManifestRepo { get; set; }
-    }
-    
     [Command(Name = "nebula", Description = "REST API Client Library Generator"),
         Subcommand("new", typeof(NewProject)), 
         Subcommand("build", typeof(BuildProject)), 
@@ -34,6 +30,7 @@ namespace Nebula
             IConfigurationRoot configuration = builder.Build();
             
             NebulaConfig.TemplateManifestRepo = configuration.GetSection("TemplateManifest").Value;
+            NebulaConfig.ProjectSkeletonRepo = configuration.GetSection("ProjectSkeleton").Value;
             
             CommandLineApplication.Execute<Nebula>(args);
         }
