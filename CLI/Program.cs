@@ -3,10 +3,11 @@ using System.ComponentModel.DataAnnotations;
 using System.IO;
 using Nebula.Parser;
 using McMaster.Extensions.CommandLineUtils;
-using Nebula.Services;
+using Core.Services;
 using System.Linq;
 using Nebula.Generators;
 using Microsoft.Extensions.Configuration;
+using System.Reflection;
 
 namespace Nebula
 {
@@ -25,8 +26,9 @@ namespace Nebula
     {
         public static void Main(string[] args)
         {
+            var appPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
+                .SetBasePath(appPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
             IConfigurationRoot configuration = builder.Build();

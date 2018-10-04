@@ -11,7 +11,7 @@ using Nebula.Renderers;
 using Nebula.Compiler;
 using Nebula.Util;
 
-namespace Nebula.Services
+namespace Core.Services
 {
     public class ProjectService
     {
@@ -35,11 +35,11 @@ namespace Nebula.Services
                 Author = Environment.UserName,
                 Company = "Some Company"  // FIXME: set company name
             };
-            var repoPath = Path.Join(location, name);
+            var repoPath = Path.Combine(location, name);
 
             // TODO: make this path a config setting
             Repository.Clone("https://github.com/JasonMiesionczek/Nebula-project-skeleton.git", repoPath);
-            Directory.Delete(Path.Join(repoPath, ".git"), true);
+            Directory.Delete(Path.Combine(repoPath, ".git"), true);
             Repository.Init(repoPath);
             UpdateProjectConfig(p, repoPath);
 
@@ -62,7 +62,7 @@ namespace Nebula.Services
                 // TODO: add other variables
             };
             
-            var projectFile = Path.Join(projectPath, "nebula.json");
+            var projectFile = Path.Combine(projectPath, "nebula.json");
             var lines = File.ReadLines(projectFile);
             var regex = new Regex("%%(.*)%%");
             var outputLines = new List<string>();
@@ -94,16 +94,16 @@ namespace Nebula.Services
 
         public Project LoadProject(string location)
         {
-            var projectFile = Path.Join(location, "nebula.json");
+            var projectFile = Path.Combine(location, "nebula.json");
             if (!File.Exists(projectFile))
             {
                 throw new Exception("Could not find nebula.json in current directory");
             }
             var project = JsonConvert.DeserializeObject<Project>(File.ReadAllText(projectFile));
-            project.SourceDirectory = Path.Join(location, "src");
-            project.TemplateDirectory = Path.Join(location, "templates");
-            project.OutputDirectory = Path.Join(location, "out");
-            project.ManifestDirectory = Path.Join(location, "manifest");
+            project.SourceDirectory = Path.Combine(location, "src");
+            project.TemplateDirectory = Path.Combine(location, "templates");
+            project.OutputDirectory = Path.Combine(location, "out");
+            project.ManifestDirectory = Path.Combine(location, "manifest");
             project.ProjectDirectory = location;
             if (!Directory.Exists(project.SourceDirectory))
             {
@@ -115,7 +115,7 @@ namespace Nebula.Services
 
         public void SaveProject(Project project)
         {
-            var projectFile = Path.Join(project.ProjectDirectory, "nebula.json");
+            var projectFile = Path.Combine(project.ProjectDirectory, "nebula.json");
             var json = JsonConvert.SerializeObject(project);
             File.WriteAllText(projectFile, json);
         }
@@ -136,20 +136,28 @@ namespace Nebula.Services
             validator.Validate();
 
             var ts = new TemplateService(p, null);
+            var pluginService = new PluginService();
 
             foreach (var template in p.Templates)
             {
                 var t = ts.GetTemplate(template) ?? throw new Exception("Could not find template data for template: " + template);
                 
                 var templateMeta = ts.GetTemplateMeta(template);
+
+                var templatePluginFileFolder = Path.Combine(p.TemplateDirectory, t.Name, templateMeta.PluginLocation);
+                var pluginFiles = new List<string>();
+                GenerateFileList(templatePluginFileFolder, pluginFiles, ".cs");
+                
+                var renderPlugin = pluginService.GetRenderPlugin(pluginFiles.ToArray());
+
                 var compiler = CompilerFactory.Get(t.Language, p, projectNode, templateMeta);
-                var renderer = RendererFactory.Get(t.Language, compiler);
+                var renderer = RendererFactory.Get(t.Language, compiler, renderPlugin);
                 
                 var destinationDirectory = PrepareOutputDir(p, templateMeta);
                 renderer.Render(compiler.OutputFiles);
                 foreach (var file in compiler.OutputFiles)
                 {
-                    var outputFileName = Path.Join(destinationDirectory, file.FileName);
+                    var outputFileName = Path.Combine(destinationDirectory, file.FileName);
                     File.WriteAllText(outputFileName, file.GetFileContent());
                 }
             }
@@ -160,8 +168,8 @@ namespace Nebula.Services
             // here we need to copy the template folder to the output directory
             // and customize the template
             var templateName = templateMeta.TemplateData.Name;
-            var sourceTemplatePath = Path.Join(project.TemplateDirectory, templateName);
-            var destTemplatePath = Path.Join(project.OutputDirectory, $"{project.Name}-{templateName}");
+            var sourceTemplatePath = Path.Combine(project.TemplateDirectory, templateName, templateMeta.TemplateLocation);
+            var destTemplatePath = Path.Combine(project.OutputDirectory, $"{project.Name}-{templateName}");
 
             if (Directory.Exists(destTemplatePath))
             {
@@ -181,17 +189,17 @@ namespace Nebula.Services
             BuildProgress = (BuildCount / TotalFiles) * 100;
             Console.WriteLine($"[{BuildCount}/{TotalFiles} ({BuildProgress}%)] Processing {inputFile}");
             var moduleName = inputFile.Replace(Path.DirectorySeparatorChar, '.').Replace(".neb", "");
-            var absoluteFile = Path.Join(CurrentProject.SourceDirectory, Path.DirectorySeparatorChar.ToString(), inputFile);
-            var parser = new Parser.NebulaParser(absoluteFile);
+            var absoluteFile = Path.Combine(CurrentProject.SourceDirectory, Path.DirectorySeparatorChar.ToString(), inputFile);
+            var parser = new NebulaParser(absoluteFile);
             return parser.Parse(moduleName);
         }
 
-        private void GenerateFileList(string folder, List<string> allFiles)
+        private void GenerateFileList(string folder, List<string> allFiles, string ext = "*.neb")
         {
             var filesInThisFolder = Directory
                 .GetFiles(folder)
                 .Select(f => f.Replace(CurrentProject.SourceDirectory + Path.DirectorySeparatorChar, ""))
-                .Where(f => f.EndsWith(".neb"));
+                .Where(f => f.EndsWith(ext));
             allFiles.AddRange(filesInThisFolder);
             var folders = Directory.GetDirectories(folder);
             foreach (var f in folders)

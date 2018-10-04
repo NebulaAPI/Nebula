@@ -28,8 +28,6 @@ namespace Nebula.Compiler.Objects.Csharp
                 Imports = new List<string> {
                     "System",
                     "System.Collections.Generic",
-                    "RestSharp",
-                    "RestSharp.Authenticators",
                     $"{project.Name}.{templateData.EntityLocation}"
                 }
             };

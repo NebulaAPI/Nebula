@@ -31,7 +31,6 @@ namespace Nebula.Generators
                 var root = parser.Parse();
                 
                 FindAndPrompt(root, null);
-                NewEntities.DumpBlocking();
             }
         }
 

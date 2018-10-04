@@ -4,19 +4,20 @@ using System.IO;
 using System.Text.RegularExpressions;
 using Nebula.Models;
 using Nebula.Parser;
-using Nebula.Services;
+using Core.Services;
 using Nebula.Util;
 using System.Linq;
 using System;
 using Nebula.Compiler.Objects.Csharp;
 using Nebula.Compiler.Objects;
 using Nebula.Compiler.Abstracts;
+using Core.Plugin;
 
 namespace Nebula.Renderers
 {
     public class CSharpRenderer : AbstractRenderer
     {
-        public CSharpRenderer(AbstractCompiler compiler) : base(compiler)
+        public CSharpRenderer(AbstractCompiler compiler, IRenderPlugin renderPlugin) : base(compiler, renderPlugin)
         {
         }
 
@@ -108,6 +109,7 @@ namespace Nebula.Renderers
         protected override void RenderAbstractNamespace(AbstractNamespace ns)
         {
             CurrentOutput.AddRange(ns.Imports.Select(i => $"using {i};"));
+            CurrentOutput.AddRange(RenderPlugin.RenderClientImports().Select(i => $"using {i};"));
             CurrentOutput.Add($"namespace {ns.Name}");
             CurrentOutput.Add("{");
         }
