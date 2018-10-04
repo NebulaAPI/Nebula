@@ -6,6 +6,7 @@ using System;
 using Nebula.Compiler.Abstracts;
 using Nebula.Compiler.Objects;
 using System.Collections.Generic;
+using Core.Plugin;
 
 namespace Nebula.Renderers
 {
@@ -20,11 +21,14 @@ namespace Nebula.Renderers
         protected AbstractCompiler Compiler { get; set; }
 
         protected ApiConfig ActiveConfig { get; set; }
+
+        protected IRenderPlugin RenderPlugin { get; set; }
         
-        protected AbstractRenderer(AbstractCompiler compiler)
+        protected AbstractRenderer(AbstractCompiler compiler, IRenderPlugin renderPlugin)
         {
             IndentLevel = 0;
             Compiler = compiler;
+            RenderPlugin = renderPlugin;
         }
 
         public void Render(List<OutputFile> outputFiles)
