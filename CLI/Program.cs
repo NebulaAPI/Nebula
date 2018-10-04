@@ -6,9 +6,15 @@ using McMaster.Extensions.CommandLineUtils;
 using Nebula.Services;
 using System.Linq;
 using Nebula.Generators;
+using Microsoft.Extensions.Configuration;
 
 namespace Nebula
 {
+    public static class NebulaConfig
+    {
+        public static string TemplateManifestRepo { get; set; }
+    }
+    
     [Command(Name = "nebula", Description = "REST API Client Library Generator"),
         Subcommand("new", typeof(NewProject)), 
         Subcommand("build", typeof(BuildProject)), 
@@ -17,29 +23,18 @@ namespace Nebula
     ]
     class Nebula
     {
-        private const string MANIFEST_GIT_REPO = "https://github.com/JasonMiesionczek/Nebula-template-manifest.git";
-        
-        public static void Main(string[] args) => CommandLineApplication.Execute<Nebula>(args);
-        // public static void Main(string[] args)
-        // {
-        //     var sampleFile = File.ReadAllText("sample.neb");
-        //     var stream = new InputStream(sampleFile);
-        //     var tokenizer = new Tokenizer(stream);
-        //     var parser = new Parser(tokenizer);
-        //     var module = parser.Parse("test");
+        public static void Main(string[] args)
+        {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
-        //     var sampleEntity = File.ReadAllText("sample_entity.neb");
-        //     var entityStream = new InputStream(sampleEntity);
-        //     var entityTokenizer = new Tokenizer(entityStream);
-        //     var entityParser = new Parser(entityTokenizer);
-        //     var entityModule = entityParser.Parse("testEntity");
-
-        //     while (!tokenizer.Eof())
-        //     {
-        //         var token = tokenizer.Next();
-        //         Console.WriteLine(token);
-        //     }
-        // }
+            IConfigurationRoot configuration = builder.Build();
+            
+            NebulaConfig.TemplateManifestRepo = configuration.GetSection("TemplateManifest").Value;
+            
+            CommandLineApplication.Execute<Nebula>(args);
+        }
 
         private int OnExecute(CommandLineApplication app, IConsole console)
         {
@@ -144,7 +139,7 @@ namespace Nebula
                     {
                         var ps = new ProjectService();
                         var project = ps.LoadProject(Environment.CurrentDirectory);
-                        var ts = new TemplateService(project, MANIFEST_GIT_REPO);
+                        var ts = new TemplateService(project, NebulaConfig.TemplateManifestRepo);
                         
                         ts.GetOrUpdateManifest();
                         return 0;
@@ -167,7 +162,7 @@ namespace Nebula
                     {
                         var ps = new ProjectService();
                         var project = ps.LoadProject(Environment.CurrentDirectory);
-                        var ts = new TemplateService(project, MANIFEST_GIT_REPO);
+                        var ts = new TemplateService(project, NebulaConfig.TemplateManifestRepo);
                         
                         var templates = ts.GetTemplates();
                         foreach (var t in templates)
@@ -196,7 +191,7 @@ namespace Nebula
                     {
                         var ps = new ProjectService();
                         var project = ps.LoadProject(Environment.CurrentDirectory);
-                        var ts = new TemplateService(project, MANIFEST_GIT_REPO);
+                        var ts = new TemplateService(project, NebulaConfig.TemplateManifestRepo);
                         
                         var template = ts.GetTemplates().FirstOrDefault(t => t.Name == Name);
                         if (template != null)
@@ -233,7 +228,7 @@ namespace Nebula
                     {
                         var ps = new ProjectService();
                         var project = ps.LoadProject(Environment.CurrentDirectory);
-                        var ts = new TemplateService(project, MANIFEST_GIT_REPO);
+                        var ts = new TemplateService(project, NebulaConfig.TemplateManifestRepo);
                         
                         ts.RemoveTemplateFromProject(Name);
                         ps.SaveProject(project);
