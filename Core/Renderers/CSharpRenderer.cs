@@ -51,11 +51,11 @@ namespace Nebula.Renderers
         {
             switch (functionType)
             {
-                case TokenType.GetFunction: return "Method.GET";
-                case TokenType.PostFunction: return "Method.POST";
-                case TokenType.PutFunction: return "Method.PUT";
-                case TokenType.DeleteFunction: return "Method.DELETE";
-                case TokenType.PatchFunction: return "Method.PATCH";
+                case TokenType.GetFunction: return "GET";
+                case TokenType.PostFunction: return "POST";
+                case TokenType.PutFunction: return "PUT";
+                case TokenType.DeleteFunction: return "DELETE";
+                case TokenType.PatchFunction: return "PATCH";
                 default: throw new System.Exception("Unknown function method type");
             }
         }
@@ -98,10 +98,15 @@ namespace Nebula.Renderers
             WriteIndented($"{visibility} {rt} {fname}({args})");
             WriteIndented("{");
             IndentLevel++;
-            WriteIndented($"var request = new RestRequest(\"{prefix}{url}\");");
-            WriteIndented(RenderUrlSegment(url, function.Node.Args));
-            WriteIndented($"var response = Client.Execute<{rt}>(request);");
-            WriteIndented("return response.Data;");
+            WriteIndented(
+                RenderPlugin.RenderAbstractFunction(
+                    url,
+                    prefix,
+                    rt,
+                    method,
+                    function.Node.Args.Select(a => a.Name).ToList()
+                )
+            );
             IndentLevel--;
             WriteIndented("}");
         }
