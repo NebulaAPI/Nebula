@@ -4,6 +4,7 @@ using System.Linq;
 using Nebula.Models;
 using LibGit2Sharp;
 using Newtonsoft.Json;
+using CLI.Util;
 
 namespace Core.Services
 {
@@ -37,6 +38,19 @@ namespace Core.Services
 
             var manifestData = JsonConvert.DeserializeObject<TemplateManifest>(File.ReadAllText(ManifestFile));
             return manifestData.Templates;
+        }
+
+        public void RenderTemplateList()
+        {
+            var templates = GetTemplates();
+            var table = new ConsoleTable("Name", "Language", "Framework", "Version", "Added");
+            
+            foreach (var t in templates)
+            {
+                var includedInProject = CurrentProject.Templates.Contains(t.Name);
+                table.AddRow(t.Name, t.Language, t.Framework, t.Version, includedInProject ? '\u2714': ' ');
+            }
+            table.Write(Format.Minimal);
         }
 
         public bool RemoveTemplateFromProject(string templateName)
