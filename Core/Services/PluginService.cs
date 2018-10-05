@@ -6,17 +6,20 @@ using System.Reflection;
 using Core.Plugin;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Nebula.Models;
 
 namespace Core.Services
 {
-    
-    
     /// <summary>
     /// This service is responsible for creating a plugin class instance from the 
     /// specified source file
     /// </summary>
     public class PluginService
     {
+        private Assembly CompiledAssembly { get; set; }
+
+        private string[] SourceFiles { get; set; }
+
         private interface ILanguageService
         {
             SyntaxTree ParseText(string code, SourceCodeKind kind);
@@ -26,8 +29,6 @@ namespace Core.Services
 
         private class CSharpLanguage : ILanguageService
         {
-            
-            
             private readonly List<PortableExecutableReference> _references = new List<PortableExecutableReference> {
                 MetadataReference.CreateFromFile(typeof(Binder).GetTypeInfo().Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(IRenderPlugin).GetTypeInfo().Assembly.Location),
@@ -63,7 +64,6 @@ namespace Core.Services
                     "mscorlib",
                 };
                 var references = trustedAssembliesPaths
-                    //.Where(p => neededAssemblies.Contains(Path.GetFileNameWithoutExtension(p)))
                     .Select(p => MetadataReference.CreateFromFile(p))
                     .ToList();
 
@@ -72,11 +72,17 @@ namespace Core.Services
                 return CSharpCompilation.Create(assemblyName, options: options, references: references);
             }
         }
-        
-        public IRenderPlugin GetRenderPlugin(params string[] sourceFiles)
+
+        public PluginService(params string[] sourceFiles)
+        {
+            CompiledAssembly = null;
+            SourceFiles = sourceFiles;
+        }
+
+        private void GenerateInMemoryAssembly()
         {
             var sourceLanguage = new CSharpLanguage();
-            var syntaxTrees = sourceFiles.Select(s => sourceLanguage.ParseText(File.ReadAllText(s), SourceCodeKind.Regular));
+            var syntaxTrees = SourceFiles.Select(s => sourceLanguage.ParseText(File.ReadAllText(s), SourceCodeKind.Regular));
 
             Compilation compilation = sourceLanguage
                 .CreateLibraryCompilation(assemblyName: "InMemoryAssembly", enableOptimisations: false)
@@ -84,16 +90,28 @@ namespace Core.Services
 
             var stream = new MemoryStream();
             var emitResult = compilation.Emit(stream);
-            
+
             if (emitResult.Success) {
                 stream.Seek(0, SeekOrigin.Begin);
-                Assembly assembly = Assembly.Load(stream.ToArray());
-                Type type = assembly.GetTypes().FirstOrDefault(t => t.GetInterfaces().Any(i => i.Name.Contains(typeof(IRenderPlugin).Name)));
-                return (IRenderPlugin)Activator.CreateInstance(type);
+                CompiledAssembly = Assembly.Load(stream.ToArray());
             } else {
                 var errorMsg = string.Join("\n", emitResult.Diagnostics.Select(d => $"{d.Id} {d.GetMessage()}"));
                 throw new Exception(errorMsg);
             }
+        }
+        
+        public T GetPlugin<T>()
+        {
+            if (CompiledAssembly == null)
+            {
+                GenerateInMemoryAssembly();
+            }
+            var type = CompiledAssembly.GetTypes().FirstOrDefault(t => t.GetInterfaces().Any(i => i.Name.Contains(typeof(T).Name)));
+            if (type == null)
+            {
+                throw new Exception($"Could not find class that implements interface {typeof(T).Name}");
+            }
+            return (T)Activator.CreateInstance(type);
         }
     }
 }
