@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Plugin;
 using Nebula.Compiler.Objects;
 using Nebula.Models;
 using Nebula.Parser;
@@ -19,12 +20,15 @@ namespace Nebula.Compiler.Abstracts
 
         public List<OutputFile> OutputFiles { get; set; }
 
-        protected AbstractCompiler(Project project, ProjectNode projectNode, TemplateMeta meta)
+        public ICompilerPlugin CompilerPlugin { get; set; }
+
+        protected AbstractCompiler(Project project, ProjectNode projectNode, TemplateMeta meta, ICompilerPlugin compilerPlugin)
         {
             OutputFiles = new List<OutputFile>();
             Project = project;
             ProjectNode = projectNode;
             TemplateMeta = meta;
+            CompilerPlugin = compilerPlugin;
             ApiConfig = new Dictionary<ApiNode, ApiConfig>();
             BuildApiConfigs();
         }

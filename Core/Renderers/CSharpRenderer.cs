@@ -60,31 +60,6 @@ namespace Nebula.Renderers
             }
         }
 
-        private List<string> RenderUrlSegment(string url, List<ArgumentNode> args)
-        {
-            var output = new List<string>();
-            // look in the URL for {variable} strings and then try and find a matching function argument
-            // if we find it, generate the appropriate request.AddUrlSegment call
-            // for any argument that is not part of the URL, send that as a parameter
-            var regex = new Regex(@"({[a-z]+})", RegexOptions.IgnoreCase);
-            var matches = regex.Matches(url);
-            var usedArgs = new List<ArgumentNode>();
-            foreach (Match m in matches)
-            {
-                var parameterName = m.Value.Replace("{", "").Replace("}", "");
-                var matchingArg = args.Where(a => a.Name == parameterName).FirstOrDefault() 
-                    ?? throw new Exception("No matching argument for URL parameter: " + parameterName);
-                
-                usedArgs.Add(matchingArg);
-                output.Add($"request.AddUrlSegment(\"{parameterName}\", {matchingArg.Name});");
-            }
-
-            var unusedArgs = args.Where(a => !usedArgs.Contains(a));
-            output.AddRange(unusedArgs.Select(arg => $"request.AddParameter(\"{arg.Name}\", {arg.Name});"));
-
-            return output;
-        }
-
         protected override void RenderAbstractFunction(AbstractFunction function)
         {
             var visibility = function.AccessModifier.ToString().ToLower();
