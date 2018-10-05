@@ -11,6 +11,7 @@ using Nebula.Renderers;
 using Nebula.Compiler;
 using Nebula.Util;
 using Core.Models;
+using Core.Plugin;
 
 namespace Core.Services
 {
@@ -137,7 +138,6 @@ namespace Core.Services
             validator.Validate();
 
             var ts = new TemplateService(p, null);
-            var pluginService = new PluginService();
 
             foreach (var template in p.Templates)
             {
@@ -148,10 +148,12 @@ namespace Core.Services
                 var templatePluginFileFolder = Path.Combine(p.TemplateDirectory, t.Name, templateMeta.PluginLocation.Trim(Path.DirectorySeparatorChar));
                 var pluginFiles = new List<string>();
                 GenerateFileList(templatePluginFileFolder, pluginFiles, ".cs");
-                
-                var renderPlugin = pluginService.GetRenderPlugin(pluginFiles.ToArray());
 
-                var compiler = CompilerFactory.Get(t.Language, p, projectNode, templateMeta);
+                var pluginService = new PluginService(pluginFiles.ToArray());
+                var renderPlugin = pluginService.GetPlugin<IRenderPlugin>();
+                var compilerPlugin = pluginService.GetPlugin<ICompilerPlugin>();
+
+                var compiler = CompilerFactory.Get(t.Language, p, projectNode, templateMeta, compilerPlugin);
                 var renderer = RendererFactory.Get(t.Language, compiler, renderPlugin);
                 
                 var destinationDirectory = PrepareOutputDir(p, templateMeta);
