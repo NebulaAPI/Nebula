@@ -23,6 +23,19 @@ namespace Core.Services
             ManifestFile = Path.Combine(CurrentProject.ManifestDirectory, "template-manifest.json");
         }
 
+        public LibraryTemplate CreateTemplate(string name)
+        {
+            var meta = new TemplateMeta {
+
+            };
+
+            var template = new LibraryTemplate {
+
+            };
+
+            return template;
+        }
+
         public void GetOrUpdateManifest()
         {
             Directory.Delete(CurrentProject.ManifestDirectory, true);

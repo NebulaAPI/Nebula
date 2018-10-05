@@ -131,6 +131,11 @@ namespace Core.Services
             BuildCount = 0;
             BuildProgress = 0;
             var modules = new List<ModuleNode>();
+
+            if (TotalFiles == 0)
+            {
+                throw new Exception("No .neb files found. Nothing to build.");
+            }
             
             // Build and validate the AST for the entire project
             var projectNode = new ProjectNode(files.Select(f => BuildModule(f)).ToList());
