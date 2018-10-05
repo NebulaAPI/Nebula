@@ -9,6 +9,7 @@ using Nebula.Generators;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
 using Core.Models;
+using CLI.Util;
 
 namespace Nebula
 {
@@ -134,6 +135,7 @@ namespace Nebula
                 private int OnExecute(IConsole console)
                 {
                     console.WriteLine("Updating templates");
+                    console.WriteLine();
                     try
                     {
                         var ps = new ProjectService();
@@ -141,6 +143,7 @@ namespace Nebula
                         var ts = new TemplateService(project, NebulaConfig.TemplateManifestRepo);
                         
                         ts.GetOrUpdateManifest();
+                        ts.RenderTemplateList();
                         return 0;
                     }
                     catch (Exception e)
@@ -163,11 +166,7 @@ namespace Nebula
                         var project = ps.LoadProject(Environment.CurrentDirectory);
                         var ts = new TemplateService(project, NebulaConfig.TemplateManifestRepo);
                         
-                        var templates = ts.GetTemplates();
-                        foreach (var t in templates)
-                        {
-                            console.WriteLine($"{t.Name}\t{t.Language}\t{t.Framework}\t{t.Version}");
-                        }
+                        ts.RenderTemplateList();
                         return 0;
                     }
                     catch (Exception e)
