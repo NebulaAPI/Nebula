@@ -4,8 +4,9 @@ using System.Linq;
 using Nebula.Models;
 using LibGit2Sharp;
 using Newtonsoft.Json;
+using CLI.Util;
 
-namespace Nebula.Services
+namespace Core.Services
 {
     public class TemplateService
     {
@@ -19,7 +20,20 @@ namespace Nebula.Services
         {
             ManifestRepo = manifestRepo;
             CurrentProject = project;
-            ManifestFile = Path.Join(CurrentProject.ManifestDirectory, "template-manifest.json");
+            ManifestFile = Path.Combine(CurrentProject.ManifestDirectory, "template-manifest.json");
+        }
+
+        public LibraryTemplate CreateTemplate(string name)
+        {
+            var meta = new TemplateMeta {
+
+            };
+
+            var template = new LibraryTemplate {
+
+            };
+
+            return template;
         }
 
         public void GetOrUpdateManifest()
@@ -39,6 +53,19 @@ namespace Nebula.Services
             return manifestData.Templates;
         }
 
+        public void RenderTemplateList()
+        {
+            var templates = GetTemplates();
+            var table = new ConsoleTable("Name", "Language", "Framework", "Version", "Added");
+            
+            foreach (var t in templates)
+            {
+                var includedInProject = CurrentProject.Templates.Contains(t.Name);
+                table.AddRow(t.Name, t.Language, t.Framework, t.Version, includedInProject ? '\u2714': ' ');
+            }
+            table.Write(Format.Minimal);
+        }
+
         public bool RemoveTemplateFromProject(string templateName)
         {
             CurrentProject.Templates.Remove(templateName);
@@ -54,7 +81,7 @@ namespace Nebula.Services
             
             // it is at this point that we should clone the template into the templates folder, and
             // only add it to the project if that process is successful
-            var templatePath = Path.Join(CurrentProject.TemplateDirectory, template.Name);
+            var templatePath = Path.Combine(CurrentProject.TemplateDirectory, template.Name);
             Repository.Clone(template.Repo, templatePath);
             //CustomizeTemplate(template.Name);
 
@@ -73,12 +100,12 @@ namespace Nebula.Services
             var template = templates.FirstOrDefault(t => t.Name == templateName);
             if (template != null && CurrentProject.Templates.Contains(templateName))
             {
-                var templatePath = Path.Join(CurrentProject.TemplateDirectory, templateName);
+                var templatePath = Path.Combine(CurrentProject.TemplateDirectory, templateName);
                 if (!Directory.Exists(templatePath))
                 {
                     throw new System.Exception("Could not find template directory: " + templatePath);
                 }
-                var templateConfigFile = Path.Join(templatePath, "nebula-meta.json");
+                var templateConfigFile = Path.Combine(templatePath, "nebula-meta.json");
                 if (!File.Exists(templateConfigFile))
                 {
                     throw new System.Exception("Could not find template meta file: " + templateConfigFile);
@@ -101,11 +128,11 @@ namespace Nebula.Services
             var templateMeta = GetTemplateMeta(templateName);
             foreach (var file in templateMeta.FilesToRename)
             {
-                var fileToUpdate = Path.Join(templatePath, file.OriginalName);
+                var fileToUpdate = Path.Combine(templatePath, file.OriginalName);
                 if (File.Exists(fileToUpdate))
                 {
                     var newFileName = file.NewName.Replace("%%NAME%%", CurrentProject.Name);
-                    File.Move(fileToUpdate, Path.Join(templatePath, newFileName));
+                    File.Move(fileToUpdate, Path.Combine(templatePath, newFileName));
                 }
             }
 

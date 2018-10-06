@@ -3,18 +3,16 @@ using System.ComponentModel.DataAnnotations;
 using System.IO;
 using Nebula.Parser;
 using McMaster.Extensions.CommandLineUtils;
-using Nebula.Services;
+using Core.Services;
 using System.Linq;
 using Nebula.Generators;
 using Microsoft.Extensions.Configuration;
+using System.Reflection;
+using Core.Models;
+using CLI.Util;
 
 namespace Nebula
 {
-    public static class NebulaConfig
-    {
-        public static string TemplateManifestRepo { get; set; }
-    }
-    
     [Command(Name = "nebula", Description = "REST API Client Library Generator"),
         Subcommand("new", typeof(NewProject)), 
         Subcommand("build", typeof(BuildProject)), 
@@ -25,13 +23,15 @@ namespace Nebula
     {
         public static void Main(string[] args)
         {
+            var appPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
+                .SetBasePath(appPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
             IConfigurationRoot configuration = builder.Build();
             
             NebulaConfig.TemplateManifestRepo = configuration.GetSection("TemplateManifest").Value;
+            NebulaConfig.ProjectSkeletonRepo = configuration.GetSection("ProjectSkeleton").Value;
             
             CommandLineApplication.Execute<Nebula>(args);
         }
@@ -135,6 +135,7 @@ namespace Nebula
                 private int OnExecute(IConsole console)
                 {
                     console.WriteLine("Updating templates");
+                    console.WriteLine();
                     try
                     {
                         var ps = new ProjectService();
@@ -142,6 +143,7 @@ namespace Nebula
                         var ts = new TemplateService(project, NebulaConfig.TemplateManifestRepo);
                         
                         ts.GetOrUpdateManifest();
+                        ts.RenderTemplateList();
                         return 0;
                     }
                     catch (Exception e)
@@ -164,11 +166,7 @@ namespace Nebula
                         var project = ps.LoadProject(Environment.CurrentDirectory);
                         var ts = new TemplateService(project, NebulaConfig.TemplateManifestRepo);
                         
-                        var templates = ts.GetTemplates();
-                        foreach (var t in templates)
-                        {
-                            console.WriteLine($"{t.Name}\t{t.Language}\t{t.Framework}\t{t.Version}");
-                        }
+                        ts.RenderTemplateList();
                         return 0;
                     }
                     catch (Exception e)

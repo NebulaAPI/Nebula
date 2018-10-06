@@ -1,3 +1,4 @@
+using Core.Plugin;
 using Nebula.Compiler.Abstracts;
 using Nebula.Models;
 using Nebula.Parser;
@@ -13,8 +14,8 @@ namespace Nebula.Compiler.Objects.Csharp
         /// structure to be rendered
         /// </summary>
         /// <param name="rootNode"></param>
-        public CsharpCompiler(Project project, ProjectNode rootNode, TemplateMeta templateData)
-            : base(project, rootNode, templateData)
+        public CsharpCompiler(Project project, ProjectNode rootNode, TemplateMeta templateData, ICompilerPlugin compilerPlugin)
+            : base(project, rootNode, templateData, compilerPlugin)
         {
             var entityNamespace = new AbstractNamespace { 
                 Name = project.Name + "." + templateData.EntityLocation,
@@ -28,8 +29,6 @@ namespace Nebula.Compiler.Objects.Csharp
                 Imports = new List<string> {
                     "System",
                     "System.Collections.Generic",
-                    "RestSharp",
-                    "RestSharp.Authenticators",
                     $"{project.Name}.{templateData.EntityLocation}"
                 }
             };
