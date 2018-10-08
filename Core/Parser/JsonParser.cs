@@ -57,7 +57,6 @@ namespace Nebula.Parser
             {
                 obj.Children.AddRange(Delimited('[', ']', ',', ParseArray));
             }
-            obj.Dump();
 
             return obj;
         }
@@ -144,6 +143,17 @@ namespace Nebula.Parser
                 Unexpected();
             }
             Tokenizer.Next();
+            
+            if (valueToken.Value == "true")
+            {
+                return true;
+            }
+            
+            if (valueToken.Value == "false")
+            {
+                return false;
+            }
+
             return valueToken.Value;
         }
 
