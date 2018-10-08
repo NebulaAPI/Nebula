@@ -12,6 +12,7 @@ using Nebula.Compiler.Objects.Csharp;
 using Nebula.Compiler.Objects;
 using Nebula.Compiler.Abstracts;
 using Core.Plugin;
+using Core.Compiler.Objects;
 
 namespace Nebula.Renderers
 {
@@ -194,6 +195,22 @@ namespace Nebula.Renderers
         protected override string RenderGenericVariableDefinition(GenericVariableDefinition variableDefinition)
         {
             return $"{variableDefinition.DataTypeName} {variableDefinition.Name}";
+        }
+
+        protected override void RenderGenericTryCatch(GenericTryCatch tryCatch)
+        {
+            WriteIndented("try");
+            WriteIndented("{");
+            IndentLevel++;
+            WriteIndented(tryCatch.Body);
+            IndentLevel--;
+            WriteIndented("}");
+            foreach (var catchBlock in tryCatch.CatchExceptions.Keys)
+            {
+                WriteIndented($"catch ({catchBlock} {tryCatch.CatchExceptions[catchBlock]})");
+                WriteIndented("{");
+                WriteIndented("}");
+            }
         }
     }
 }

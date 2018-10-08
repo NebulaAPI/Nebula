@@ -7,6 +7,7 @@ using Nebula.Compiler.Abstracts;
 using Nebula.Compiler.Objects;
 using System.Collections.Generic;
 using Core.Plugin;
+using Core.Compiler.Objects;
 
 namespace Nebula.Renderers
 {
@@ -121,6 +122,7 @@ namespace Nebula.Renderers
         protected abstract string RenderGenericVariableDefinition(GenericVariableDefinition variableDefinition);
         protected abstract void RenderGenericFunction(GenericFunction genericFunction);
         protected abstract string ConvertTypeName(string inputType);
+        protected abstract void RenderGenericTryCatch(GenericTryCatch tryCatch);
 
         protected void RenderGenericProperties(List<GenericProperty> properties)
         {
