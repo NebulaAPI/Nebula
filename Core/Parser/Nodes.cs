@@ -234,13 +234,15 @@ namespace Nebula.Parser
         public TokenType Method { get; set; }
         public string Url { get; set; }
         public DataTypeNode ReturnType { get; set; }
-        public FunctionNode(string name, List<ArgumentNode> args, TokenType method, string url, DataTypeNode returnType) : base("function")
+        public List<KeyValueNode> Docs { get; set; }
+        public FunctionNode(string name, List<ArgumentNode> args, TokenType method, string url, DataTypeNode returnType, List<KeyValueNode> docs) : base("function")
         {
             Name = name;
             Args = args;
             Method = method;
             Url = url;
             ReturnType = returnType;
+            Docs = docs;
         }
     }
 
@@ -280,6 +282,16 @@ namespace Nebula.Parser
     {
         public List<KeyValueNode> Nodes { get; set; }
         public ConfigNode(List<KeyValueNode> nodes) : base("config")
+        {
+            Nodes = nodes;
+        }
+    }
+
+    [Child("Nodes")]
+    public class DocNode : AstNode
+    {
+        public List<KeyValueNode> Nodes { get; set; }
+        public DocNode(List<KeyValueNode> nodes) : base("doc")
         {
             Nodes = nodes;
         }

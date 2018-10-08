@@ -35,7 +35,10 @@ namespace Core.Tests.Parser
                 authMethod = OAuthToken
             }
 
-            func getDevices() << ""/devices"" -> array[Device]
+            func getDevices() << ""/devices"" -> array[Device] {
+                description = ""Get all the devices"",
+                return = ""Array of Device objects""
+            }
         }
         ";
 
@@ -47,9 +50,22 @@ namespace Core.Tests.Parser
                 authMethod = OAuthToken
             }
 
-            func getDevices() << ""/devices"" -> array[Device]
+            func getDevices() << ""/devices"" -> array[Device] {
+                description = ""Get all the devices"",
+                return = ""Array of Device objects""
+            }
 
-            func getDeviceById(id: integer) << ""/device/{id}"" -> Device
+            func getDeviceById(id: integer) << ""/device/{id}"" -> Device {
+                description = ""Get a single device by id"",
+                return = ""Device object"",
+                id = ""The ID of the device to retrieve""
+            }
+
+            func createDevice(device: Device) >> ""/device/new"" -> Device {
+                description = ""Create a new device"",
+                return = ""The Device that was created"",
+                device = ""The Device data to use""
+            }
         }
         ";
         
@@ -69,6 +85,12 @@ namespace Core.Tests.Parser
 
             var api = result.SearchByType<ApiNode>().FirstOrDefault();
             Assert.NotNull(api);
+            var funcs = result.SearchByType<FunctionNode>();
+            Assert.AreEqual(3, funcs.Count);
+            var getDevicesFunc = funcs.FirstOrDefault(f => f.Name == "getDevices");
+            Assert.NotNull(getDevicesFunc);
+            Assert.AreEqual("/devices", getDevicesFunc.Url);
+            Assert.AreEqual(TokenType.GetFunction, getDevicesFunc.Method);
         }
 
         [Test]

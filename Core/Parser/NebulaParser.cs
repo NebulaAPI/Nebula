@@ -153,7 +153,8 @@ namespace Nebula.Parser
                 {
                     Tokenizer.Next();
                     var returnType = ParseDataType();
-                    return new FunctionNode(functionName, arguments, httpOp.Type, url.Value, returnType);
+                    var docs = Delimited<KeyValueNode>('{', '}', ',', ParseKeyValue);
+                    return new FunctionNode(functionName, arguments, httpOp.Type, url.Value, returnType, docs);
                 }
                 else
                 {
