@@ -1,4 +1,5 @@
 using Core.Plugin;
+using Core.Renderers;
 using Nebula.Compiler.Abstracts;
 
 namespace Nebula.Renderers
@@ -10,6 +11,7 @@ namespace Nebula.Renderers
             switch(language.ToLower())
             {
                 case "c#": return new CSharpRenderer(compiler, renderPlugin);
+                case "php": return new PhpRenderer(compiler, renderPlugin);
                 default: return null;
             }    
         }

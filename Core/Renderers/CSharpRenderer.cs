@@ -212,5 +212,10 @@ namespace Nebula.Renderers
                 WriteIndented("}");
             }
         }
+
+        protected override List<string> RenderDocBlock(string description, Dictionary<string, string> paramValues)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

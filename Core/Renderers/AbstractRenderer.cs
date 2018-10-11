@@ -65,6 +65,8 @@ namespace Nebula.Renderers
             }
         }
 
+        protected abstract List<string> RenderDocBlock(string description, Dictionary<string, string> paramValues);
+
         protected void RenderNode(RootObject node)
         {
             switch (node)

@@ -1,3 +1,4 @@
+using Core.Compiler.Objects.PHP;
 using Core.Plugin;
 using Nebula.Compiler.Abstracts;
 using Nebula.Compiler.Objects.Csharp;
@@ -13,6 +14,7 @@ namespace Nebula.Compiler
             switch (language.ToLower())
             {
                 case "c#": return new CsharpCompiler(project, node, templateData, compilerPlugin);
+                case "php": return new PhpCompiler(project, node, templateData, compilerPlugin);
                 default:
                     throw new System.Exception("Unsupported language: " + language);
             }
