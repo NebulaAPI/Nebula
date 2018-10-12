@@ -13,11 +13,14 @@ namespace Nebula.Compiler.Objects
 
         public List<GenericFunction> Functions { get; set; }
 
+        public bool IsInterface { get; set; }
+
         public GenericClass()
         {
             Inheritence = new List<GenericClass>();
             Properties = new List<GenericProperty>();
             Functions = new List<GenericFunction>();
+            IsInterface = false;
         }
     }
 }

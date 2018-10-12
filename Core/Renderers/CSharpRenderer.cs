@@ -95,7 +95,7 @@ namespace Nebula.Renderers
             CurrentOutput.Add("{");
         }
 
-        protected override void RenderAbstractProperty(AbstractProperty prop)
+        protected override void RenderAbstractProperty(AbstractProperty<EntityNode> prop)
         {
             var visibility = prop.AccessModifier.ToString().ToLower();
             var rt = RenderAbstractDataType(prop.DataType);

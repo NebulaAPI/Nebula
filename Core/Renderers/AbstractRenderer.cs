@@ -24,6 +24,10 @@ namespace Nebula.Renderers
         protected ApiConfig ActiveConfig { get; set; }
 
         protected IRenderPlugin RenderPlugin { get; set; }
+
+        protected TemplateMeta Meta { get; set; }
+
+        protected Project Project { get; set; }
         
         protected AbstractRenderer(AbstractCompiler compiler, IRenderPlugin renderPlugin)
         {
@@ -32,8 +36,11 @@ namespace Nebula.Renderers
             RenderPlugin = renderPlugin;
         }
 
-        public void Render(List<OutputFile> outputFiles)
+        public void Render(List<OutputFile> outputFiles, Project project, TemplateMeta meta)
         {
+            Project = project;
+            Meta = meta;
+            
             foreach (var file in outputFiles)
             {
                 var output = new List<string>();
@@ -89,7 +96,7 @@ namespace Nebula.Renderers
                 case AbstractNamespace an:
                     RenderAbstractNamespace(an);
                     break;
-                case AbstractProperty ap:
+                case AbstractProperty<EntityNode> ap:
                     RenderAbstractProperty(ap);
                     break;
                 case GenericClass gc:
@@ -117,7 +124,7 @@ namespace Nebula.Renderers
         protected abstract string RenderAbstractVariableDefinition(AbstractVariableDefinition variable);
         protected abstract void RenderAbstractFunction(AbstractFunction function);
         protected abstract void RenderAbstractNamespace(AbstractNamespace ns);
-        protected abstract void RenderAbstractProperty(AbstractProperty prop);
+        protected abstract void RenderAbstractProperty(AbstractProperty<EntityNode> prop);
         protected abstract void RenderGenericClass(GenericClass genericClass);
         protected abstract void RenderGenericConstructor(GenericConstructor genericConstructor);
         protected abstract void RenderGenericProperty(GenericProperty prop);

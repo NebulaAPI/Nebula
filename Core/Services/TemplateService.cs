@@ -143,6 +143,7 @@ namespace Core.Services
                     fileContent
                         .Replace("%%NAME%%", CurrentProject.Name)
                         .Replace("%%VERSION%%", CurrentProject.Version)
+                        .Replace("%%PROPERNAME%%", CurrentProject.GetProperName())
                 );
             }
         }

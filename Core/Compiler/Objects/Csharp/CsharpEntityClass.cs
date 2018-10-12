@@ -13,7 +13,7 @@ namespace Nebula.Compiler.Objects.Csharp
 
         public override void Init()
         {
-            Properties.AddRange(RootNode.Fields.Select(f => new AbstractProperty(f)));
+            Properties.AddRange(RootNode.Fields.Select(f => new AbstractProperty<EntityNode>(f, RootNode)));
         }
     }
 }

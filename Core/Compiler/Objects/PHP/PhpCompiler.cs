@@ -13,7 +13,7 @@ namespace Core.Compiler.Objects.PHP
         public PhpCompiler(Project project, ProjectNode projectNode, TemplateMeta meta, ICompilerPlugin compilerPlugin)
             : base(project, projectNode, meta, compilerPlugin)
         {
-            var projectName = project.Name.Replace("-", " ").Replace("_", " ").ToProperCase().ToPascalCase();
+            var projectName = project.GetProperName();
             
             var entityNamespace = new AbstractNamespace { 
                 Name = projectName + @"\" + meta.EntityLocation
@@ -22,8 +22,7 @@ namespace Core.Compiler.Objects.PHP
             var clientNamespace = new AbstractNamespace {
                 Name = projectName + @"\" + meta.ClientLocation,
                 Imports = new List<string> {
-                    //@"GuzzleHttp\Client",
-                    //@"GuzzleHttp\Exception\GuzzleException",
+                    
                     @"JsonMapper",
                     $"{projectName}\\{meta.EntityLocation}"
                 }

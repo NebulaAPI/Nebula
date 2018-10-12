@@ -88,45 +88,44 @@ namespace Core.Renderers
             CurrentOutput.Add($"namespace {ns.Name};");
         }
 
-        protected override void RenderAbstractProperty(AbstractProperty prop)
+        protected override void RenderAbstractProperty(AbstractProperty<EntityNode> prop)
         {
             var visibility = prop.AccessModifier.ToString().ToLower();
             var rt = RenderAbstractDataType(prop.DataType);
             var fieldNamePascal = prop.Name.ToProperCase().ToPascalCase();
             var fieldNameCamel = prop.Name.ToProperCase().ToCamelCase();
 
+            var projectName = Project.GetProperName();
+
             WriteIndented($"private $_{fieldNameCamel};");
             WriteIndented(RenderDocBlock(
                 null,
                 new Dictionary<string, string>
                 {
-                    { "return", @"\something\E"}
+                    { "return", prop.DataType.Node.IsEntity ? $@"\{projectName}\{Meta.EntityLocation}\{rt}" : $"{rt}"}
                 }
             ));
-            /*
-            private $_{fieldName};
-            
-            /**
-             * @return \{projectName}\Entities\{dt}
-             *
-            public function get{fieldName}() : {rt}
-            {
-                return $this->_{fieldName};
-            }
-
-            /**
-             * @param \{projectName}\Entities\{dt} $value
-             * @return {className}
-             *
-            public function set{fieldName}($value) : {className}
-            {
-                $this->_{fieldName} = $value;
-
-                return $this;
-            }
-             */
-
-            //WriteIndented($"{visibility} {rt} {fieldName} {{ get; set; }}");
+            WriteIndented($"public function get{fieldNamePascal}() : {rt}");
+            WriteIndented("{");
+            IndentLevel++;
+            WriteIndented($"return $this->_{fieldNameCamel};");
+            IndentLevel--;
+            WriteIndented("}");
+            WriteIndented(RenderDocBlock(
+                null,
+                new Dictionary<string, string>
+                {
+                    { "param", prop.DataType.Node.IsEntity ? $@"\{projectName}\{Meta.EntityLocation}\{rt} $value" : $"{rt} $value"},
+                    { "return", $"{prop.Parent.Name}"}
+                }
+            ));
+            WriteIndented($"public function set{fieldNamePascal}({rt} $value) : {prop.Parent.Name}");
+            WriteIndented("{");
+            IndentLevel++;
+            WriteIndented($"$this->_{fieldNameCamel} = $value;");
+            WriteIndented("return $this;");
+            IndentLevel--;
+            WriteIndented("}");
         }
 
         protected override string RenderAbstractVariableDefinition(AbstractVariableDefinition variable)
@@ -136,22 +135,70 @@ namespace Core.Renderers
 
         protected override void RenderApiClass(AbstractClass<ApiNode> ac)
         {
-            
+            ActiveConfig = ac.Config;
+            RenderNode(ac.Namespace);
+            WriteIndented($"class {ac.Name}Client");
+            WriteIndented("{");
+            IndentLevel++;
+            RenderNodes<RootObject>(ac.TopOfClassExtra);
+            RenderNodes<BaseProperty>(ac.Properties);
+            RenderNode(ac.Constructor);
+            RenderNodes<AbstractFunction>(ac.Functions);
+            IndentLevel--;
+            WriteIndented("}");
         }
 
         protected override void RenderEntityClass(AbstractClass<EntityNode> ac)
         {
-            
+            RenderNode(ac.Namespace);
+            WriteIndented($"class {ac.Name}");
+            WriteIndented("{");
+            IndentLevel++;
+            RenderNodes<BaseProperty>(ac.Properties);
+            IndentLevel--;
+            WriteIndented("}");
         }
 
         protected override void RenderGenericClass(GenericClass genericClass)
         {
-            
+            var inherits = "";
+            var inheritedInterfaces = genericClass.Inheritence.Where(i => i.IsInterface);
+            var inheritedClasses = genericClass.Inheritence.Where(i => !i.IsInterface);
+            if (inheritedClasses.Count() > 0)
+            {
+                inherits += "extends ";
+                inherits += string.Join(", ", inheritedClasses);
+            }
+
+            if (inheritedInterfaces.Count() > 0)
+            {
+                inherits += "implements ";
+                inherits += string.Join(", ", inheritedInterfaces);
+            }
+            WriteIndented($"class {genericClass.Name} {inherits}");
+            WriteIndented("{");
+            IndentLevel++;
+            RenderGenericProperties(genericClass.Properties);
+            RenderGenericConstructor(genericClass.Constructor);
+            RenderGenericFunctions(genericClass.Functions);
+            IndentLevel--;
+            WriteIndented("}");
         }
 
         protected override void RenderGenericConstructor(GenericConstructor genericConstructor)
         {
-            
+            if (genericConstructor == null)
+            {
+                return;
+            }
+
+            var args = string.Join(", ", genericConstructor.Arguments.Select(a => RenderGenericVariableDefinition(a)));
+            WriteIndented($"{genericConstructor.AccessModifier.ToString().ToLower()} function __construct({args})");
+            WriteIndented("{");
+            IndentLevel++;
+            WriteIndented(genericConstructor.Body);
+            IndentLevel--;
+            WriteIndented("}");
         }
 
         protected override void RenderGenericFunction(GenericFunction genericFunction)

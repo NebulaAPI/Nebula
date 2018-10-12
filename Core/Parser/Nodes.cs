@@ -17,6 +17,10 @@ namespace Nebula.Parser
     
     public class AstNode
     {
+        public static List<string> BuiltInTypes = new List<string> {
+            "string", "boolean", "integer", "float", "double", "char", "array", "datetime"
+        };
+        
         public string Type { get; set; }
 
         public bool Exported { get; set; }
@@ -311,11 +315,18 @@ namespace Nebula.Parser
     {
         public bool Generic { get; set; }
         public string GenericType { get; set; }
+        public bool IsEntity { get; set; }
         public DataTypeNode(string name, bool generic, string genericType) : base("dt")
         {
             Name = name;
             Generic = generic;
             GenericType = genericType;
+            IsEntity = false;
+
+            if (!AstNode.BuiltInTypes.Contains(name))
+            {
+                IsEntity = true;
+            }
         }
     }
 }

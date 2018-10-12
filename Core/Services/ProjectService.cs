@@ -162,10 +162,10 @@ namespace Core.Services
                 var renderer = RendererFactory.Get(t.Language, compiler, renderPlugin);
                 
                 var destinationDirectory = PrepareOutputDir(p, templateMeta);
-                renderer.Render(compiler.OutputFiles);
+                renderer.Render(compiler.OutputFiles, p, templateMeta);
                 foreach (var file in compiler.OutputFiles)
                 {
-                    var outputFileName = Path.Combine(destinationDirectory, file.FileName);
+                    var outputFileName = Path.Combine(destinationDirectory, templateMeta.SourceFolder, file.FileName);
                     File.WriteAllText(outputFileName, file.GetFileContent());
                 }
             }

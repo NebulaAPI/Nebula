@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Nebula.Util;
 using Newtonsoft.Json;
 
 namespace Nebula.Models
@@ -25,6 +26,11 @@ namespace Nebula.Models
         public Project()
         {
             Templates = new List<string>();
+        }
+
+        public string GetProperName()
+        {
+            return Name.Replace("-", " ").Replace("_", " ").ToProperCase().ToPascalCase();
         }
 
     }
