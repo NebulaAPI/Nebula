@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using CLI.Models;
 using Nebula.Models;
 using Nebula.Parser;
+using Nebula.Util;
 using Newtonsoft.Json;
 using SharpPad;
 
@@ -35,7 +36,34 @@ namespace Nebula.Generators
                 var root = parser.Parse();
                 
                 FindAndPrompt(root, null);
+                WriteEntities();
             }
+        }
+
+        private void WriteEntities()
+        {
+            var outputFolder = Path.Combine(Project.SourceDirectory, "models");
+            foreach (var entity in NewEntities)
+            {
+                var outputFile = Path.Combine(outputFolder, entity.Name + ".neb");
+                var output = RenderEntity(entity);
+                File.WriteAllLines(outputFile, output);
+            }
+        }
+
+        private List<string> RenderEntity(Entity entity)
+        {
+            var output = new List<string>();
+            output.Add($"entity {entity.Name} {{");
+            var fields = new List<string>();
+            foreach (var field in entity.Fields)
+            {
+                var name = field.Name.Replace("_", " ").Replace("-", " ").ToProperCase().ToCamelCase();
+                fields.Add($"    {name}: {field.Type}");
+            }
+            output.Add(string.Join("," + Environment.NewLine, fields));
+            output.Add("}");
+            return output;
         }
 
         private string Prompt(string prompt)
