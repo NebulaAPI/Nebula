@@ -18,9 +18,9 @@ namespace Core.Services
     public class ProjectService
     {
         private Project CurrentProject { get; set; }
-        private int BuildProgress { get; set; }
-        private int BuildCount { get; set; }
-        private int TotalFiles { get; set; }
+        private double BuildProgress { get; set; }
+        private double BuildCount { get; set; }
+        private double TotalFiles { get; set; }
         
         /// <summary>
         /// Creates a new project
@@ -128,9 +128,14 @@ namespace Core.Services
             var files = new List<string>();
             GenerateFileList(p.SourceDirectory, files);
             TotalFiles = files.Count;
-            BuildCount = 0;
-            BuildProgress = 0;
+            BuildCount = 0.0f;
+            BuildProgress = 0.0f;
             var modules = new List<ModuleNode>();
+
+            if (TotalFiles == 0)
+            {
+                throw new Exception("No .neb files found. Nothing to build.");
+            }
             
             // Build and validate the AST for the entire project
             var projectNode = new ProjectNode(files.Select(f => BuildModule(f)).ToList());
@@ -157,10 +162,10 @@ namespace Core.Services
                 var renderer = RendererFactory.Get(t.Language, compiler, renderPlugin);
                 
                 var destinationDirectory = PrepareOutputDir(p, templateMeta);
-                renderer.Render(compiler.OutputFiles);
+                renderer.Render(compiler.OutputFiles, p, templateMeta);
                 foreach (var file in compiler.OutputFiles)
                 {
-                    var outputFileName = Path.Combine(destinationDirectory, file.FileName);
+                    var outputFileName = Path.Combine(destinationDirectory, templateMeta.SourceFolder, file.FileName);
                     File.WriteAllText(outputFileName, file.GetFileContent());
                 }
             }
@@ -189,7 +194,7 @@ namespace Core.Services
         private ModuleNode BuildModule(string inputFile)
         {
             BuildCount++;
-            BuildProgress = (BuildCount / TotalFiles) * 100;
+            BuildProgress = Math.Floor((BuildCount / TotalFiles) * 100);
             Console.WriteLine($"[{BuildCount}/{TotalFiles} ({BuildProgress}%)] Processing {inputFile}");
             var moduleName = inputFile.Replace(Path.DirectorySeparatorChar, '.').Replace(".neb", "");
             var absoluteFile = Path.Combine(CurrentProject.SourceDirectory, inputFile);

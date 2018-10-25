@@ -17,6 +17,10 @@ namespace Nebula.Parser
     
     public class AstNode
     {
+        public static List<string> BuiltInTypes = new List<string> {
+            "string", "boolean", "integer", "float", "double", "char", "array", "datetime"
+        };
+        
         public string Type { get; set; }
 
         public bool Exported { get; set; }
@@ -234,13 +238,15 @@ namespace Nebula.Parser
         public TokenType Method { get; set; }
         public string Url { get; set; }
         public DataTypeNode ReturnType { get; set; }
-        public FunctionNode(string name, List<ArgumentNode> args, TokenType method, string url, DataTypeNode returnType) : base("function")
+        public List<KeyValueNode> Docs { get; set; }
+        public FunctionNode(string name, List<ArgumentNode> args, TokenType method, string url, DataTypeNode returnType, List<KeyValueNode> docs) : base("function")
         {
             Name = name;
             Args = args;
             Method = method;
             Url = url;
             ReturnType = returnType;
+            Docs = docs;
         }
     }
 
@@ -285,6 +291,16 @@ namespace Nebula.Parser
         }
     }
 
+    [Child("Nodes")]
+    public class DocNode : AstNode
+    {
+        public List<KeyValueNode> Nodes { get; set; }
+        public DocNode(List<KeyValueNode> nodes) : base("doc")
+        {
+            Nodes = nodes;
+        }
+    }
+
     [Child("Modules")]
     public class ProjectNode : AstNode
     {
@@ -299,11 +315,18 @@ namespace Nebula.Parser
     {
         public bool Generic { get; set; }
         public string GenericType { get; set; }
+        public bool IsEntity { get; set; }
         public DataTypeNode(string name, bool generic, string genericType) : base("dt")
         {
             Name = name;
             Generic = generic;
             GenericType = genericType;
+            IsEntity = false;
+
+            if (!AstNode.BuiltInTypes.Contains(name))
+            {
+                IsEntity = true;
+            }
         }
     }
 }

@@ -13,10 +13,16 @@ namespace Nebula.Models
     {
         public string EntityLocation { get; set; }
         public string ClientLocation { get; set; }
+        public string SourceFolder { get; set; }
         public string TemplateLocation { get; set; }
         public string PluginLocation { get; set; }
         public List<TemplateFile> FilesToRename { get; set; }
         [JsonIgnore] public string TemplatePath { get; set; }
         [JsonIgnore] public LibraryTemplate TemplateData { get; set; }
+
+        public TemplateMeta()
+        {
+            SourceFolder = "";
+        }
     }
 }

@@ -35,11 +35,37 @@ namespace Nebula.Parser
             CollectCustomEntities();
             ValidateDataNodes();
             ValidateApiConfig();
+            ValidateFunctionDocs();
         }
 
         private bool IsValidType(string typeName)
         {
             return AllTypes.Contains(typeName);
+        }
+
+        private void ValidateFunctionDocs()
+        {
+            var funcs = Node.SearchByType<FunctionNode>();
+            foreach (var f in funcs)
+            {
+                if (!f.Docs.Any(d => d.Key == "description"))
+                {
+                    throw new Exception($"Missing 'description' doc on function: {f.Name}");
+                }
+                
+                if (!f.Docs.Any(d => d.Key == "return"))
+                {
+                    throw new Exception($"Missing 'return' doc on function: {f.Name}");
+                }
+
+                foreach (var arg in f.Args)
+                {
+                    if (!f.Docs.Any(d => d.Key == arg.Name))
+                    {
+                        throw new Exception($"Missing documentation for function parameter: {arg.Name}");
+                    }
+                }
+            }
         }
 
         private void ValidateApiConfig()

@@ -2,15 +2,10 @@ using System.Linq;
 using Nebula.Compiler.Abstracts;
 using Nebula.Parser;
 
-namespace Nebula.Compiler.Objects.Csharp
+namespace Core.Compiler.Objects.PHP
 {
-    public class CsharpEntityClass : CsharpClass<EntityNode>
+    public class PhpEntityClass : PhpClass<EntityNode>
     {
-        public CsharpEntityClass()
-        {
-            
-        }
-
         public override void Init()
         {
             Properties.AddRange(RootNode.Fields.Select(f => new AbstractProperty<EntityNode>(f, RootNode)));

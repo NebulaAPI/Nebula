@@ -1,24 +1,18 @@
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Text.RegularExpressions;
-using Nebula.Models;
-using Nebula.Parser;
-using Core.Services;
-using Nebula.Util;
 using System.Linq;
-using System;
-using Nebula.Compiler.Objects.Csharp;
-using Nebula.Compiler.Objects;
-using Nebula.Compiler.Abstracts;
-using Core.Plugin;
 using Core.Compiler.Objects;
+using Core.Plugin;
+using Nebula.Compiler.Abstracts;
+using Nebula.Compiler.Objects;
+using Nebula.Parser;
+using Nebula.Renderers;
+using Nebula.Util;
 
-namespace Nebula.Renderers
+namespace Core.Renderers
 {
-    public class CSharpRenderer : AbstractRenderer
+    public class PhpRenderer : AbstractRenderer
     {
-        public CSharpRenderer(AbstractCompiler compiler, IRenderPlugin renderPlugin) : base(compiler, renderPlugin)
+        public PhpRenderer(AbstractCompiler compiler, IRenderPlugin renderPlugin) : base(compiler, renderPlugin)
         {
         }
 
@@ -28,7 +22,7 @@ namespace Nebula.Renderers
             {
                 case "integer": return "int";
                 case "boolean": return "bool";
-                case "datetime": return "DateTime";
+                case "datetime": return @"\DateTime";
                 default: return inputType;
             }
         }
@@ -42,7 +36,7 @@ namespace Nebula.Renderers
         {
             if (abstractData.Node.Generic && abstractData.Node.Name == "array")
             {
-                return $"List<{abstractData.Node.GenericType}>";
+                return $"{abstractData.Node.GenericType}[]";
             }
 
             return ConvertTypeName(abstractData.Node.Name);
@@ -71,7 +65,7 @@ namespace Nebula.Renderers
             var prefix = ActiveConfig.Prefix;
             var url = function.Node.Url;
 
-            WriteIndented($"{visibility} {rt} {fname}({args})");
+            WriteIndented($"{visibility} function {fname}({args}) : {rt}");
             WriteIndented("{");
             IndentLevel++;
             WriteIndented(
@@ -89,19 +83,49 @@ namespace Nebula.Renderers
 
         protected override void RenderAbstractNamespace(AbstractNamespace ns)
         {
-            CurrentOutput.AddRange(ns.Imports.Select(i => $"using {i};"));
-            CurrentOutput.AddRange(RenderPlugin.RenderClientImports().Select(i => $"using {i};"));
-            CurrentOutput.Add($"namespace {ns.Name}");
-            CurrentOutput.Add("{");
+            CurrentOutput.AddRange(ns.Imports.Select(i => $"use {i};"));
+            CurrentOutput.AddRange(RenderPlugin.RenderClientImports().Select(i => $"use {i};"));
+            CurrentOutput.Add($"namespace {ns.Name};");
         }
 
         protected override void RenderAbstractProperty(AbstractProperty<EntityNode> prop)
         {
             var visibility = prop.AccessModifier.ToString().ToLower();
             var rt = RenderAbstractDataType(prop.DataType);
-            var fieldName = prop.Name.ToProperCase().ToPascalCase();
+            var fieldNamePascal = prop.Name.ToProperCase().ToPascalCase();
+            var fieldNameCamel = prop.Name.ToProperCase().ToCamelCase();
 
-            WriteIndented($"{visibility} {rt} {fieldName} {{ get; set; }}");
+            var projectName = Project.GetProperName();
+
+            WriteIndented($"private $_{fieldNameCamel};");
+            WriteIndented(RenderDocBlock(
+                null,
+                new Dictionary<string, string>
+                {
+                    { "return", prop.DataType.Node.IsEntity ? $@"\{projectName}\{Meta.EntityLocation}\{rt}" : $"{rt}"}
+                }
+            ));
+            WriteIndented($"public function get{fieldNamePascal}() : {rt}");
+            WriteIndented("{");
+            IndentLevel++;
+            WriteIndented($"return $this->_{fieldNameCamel};");
+            IndentLevel--;
+            WriteIndented("}");
+            WriteIndented(RenderDocBlock(
+                null,
+                new Dictionary<string, string>
+                {
+                    { "param", prop.DataType.Node.IsEntity ? $@"\{projectName}\{Meta.EntityLocation}\{rt} $value" : $"{rt} $value"},
+                    { "return", $"{prop.Parent.Name}"}
+                }
+            ));
+            WriteIndented($"public function set{fieldNamePascal}({rt} $value) : {prop.Parent.Name}");
+            WriteIndented("{");
+            IndentLevel++;
+            WriteIndented($"$this->_{fieldNameCamel} = $value;");
+            WriteIndented("return $this;");
+            IndentLevel--;
+            WriteIndented("}");
         }
 
         protected override string RenderAbstractVariableDefinition(AbstractVariableDefinition variable)
@@ -113,8 +137,7 @@ namespace Nebula.Renderers
         {
             ActiveConfig = ac.Config;
             RenderNode(ac.Namespace);
-            IndentLevel++;
-            WriteIndented($"public class {ac.Name}Client");
+            WriteIndented($"class {ac.Name}Client");
             WriteIndented("{");
             IndentLevel++;
             RenderNodes<RootObject>(ac.TopOfClassExtra);
@@ -123,20 +146,15 @@ namespace Nebula.Renderers
             RenderNodes<AbstractFunction>(ac.Functions);
             IndentLevel--;
             WriteIndented("}");
-            IndentLevel--;
-            WriteIndented("}");
         }
 
         protected override void RenderEntityClass(AbstractClass<EntityNode> ac)
         {
             RenderNode(ac.Namespace);
-            IndentLevel++;
-            WriteIndented($"public class {ac.Name}");
+            WriteIndented($"class {ac.Name}");
             WriteIndented("{");
             IndentLevel++;
             RenderNodes<BaseProperty>(ac.Properties);
-            IndentLevel--;
-            WriteIndented("}");
             IndentLevel--;
             WriteIndented("}");
         }
@@ -144,11 +162,20 @@ namespace Nebula.Renderers
         protected override void RenderGenericClass(GenericClass genericClass)
         {
             var inherits = "";
-            if (genericClass.Inheritence.Count > 0)
+            var inheritedInterfaces = genericClass.Inheritence.Where(i => i.IsInterface);
+            var inheritedClasses = genericClass.Inheritence.Where(i => !i.IsInterface);
+            if (inheritedClasses.Count() > 0)
             {
-                inherits = ": " + string.Join(", ", genericClass.Inheritence.Select(i => i.Name));
+                inherits += "extends ";
+                inherits += string.Join(", ", inheritedClasses);
             }
-            WriteIndented($"{genericClass.AccessModifier.ToString().ToLower()} class {genericClass.Name} {inherits}");
+
+            if (inheritedInterfaces.Count() > 0)
+            {
+                inherits += "implements ";
+                inherits += string.Join(", ", inheritedInterfaces);
+            }
+            WriteIndented($"class {genericClass.Name} {inherits}");
             WriteIndented("{");
             IndentLevel++;
             RenderGenericProperties(genericClass.Properties);
@@ -164,8 +191,9 @@ namespace Nebula.Renderers
             {
                 return;
             }
+
             var args = string.Join(", ", genericConstructor.Arguments.Select(a => RenderGenericVariableDefinition(a)));
-            WriteIndented($"{genericConstructor.AccessModifier.ToString().ToLower()} {genericConstructor.Name}({args})");
+            WriteIndented($"{genericConstructor.AccessModifier.ToString().ToLower()} function __construct({args})");
             WriteIndented("{");
             IndentLevel++;
             WriteIndented(genericConstructor.Body);
@@ -175,47 +203,41 @@ namespace Nebula.Renderers
 
         protected override void RenderGenericFunction(GenericFunction genericFunction)
         {
-            var visibility = genericFunction.AccessModifier.ToString().ToLower();
-            var rt = genericFunction.ReturnType;
-            var name = genericFunction.Name;
-            var args = string.Join(", ", genericFunction.Arguments.Select(a => RenderGenericVariableDefinition(a)));
-            WriteIndented($"{visibility} {rt} {name}({args})");
-            WriteIndented("{");
-            IndentLevel++;
-            WriteIndented(genericFunction.Body);
-            IndentLevel--;
-            WriteIndented("}");
+            
         }
 
         protected override void RenderGenericProperty(GenericProperty prop)
         {
-            WriteIndented($"{prop.AccessModifier.ToString().ToLower()} {prop.DataTypeString} {prop.Name} {{ get; set; }}");
-        }
-
-        protected override string RenderGenericVariableDefinition(GenericVariableDefinition variableDefinition)
-        {
-            return $"{variableDefinition.DataTypeName} {variableDefinition.Name}";
+            
         }
 
         protected override void RenderGenericTryCatch(GenericTryCatch tryCatch)
         {
-            WriteIndented("try");
-            WriteIndented("{");
-            IndentLevel++;
-            WriteIndented(tryCatch.Body);
-            IndentLevel--;
-            WriteIndented("}");
-            foreach (var catchBlock in tryCatch.CatchExceptions.Keys)
-            {
-                WriteIndented($"catch ({catchBlock} {tryCatch.CatchExceptions[catchBlock]})");
-                WriteIndented("{");
-                WriteIndented("}");
-            }
+            
+        }
+
+        protected override string RenderGenericVariableDefinition(GenericVariableDefinition variableDefinition)
+        {
+            return "";
         }
 
         protected override List<string> RenderDocBlock(string description, Dictionary<string, string> paramValues)
         {
-            throw new NotImplementedException();
+            var output = new List<string>();
+            output.Add("/**");
+
+            if (description != null)
+            {
+                output.Add($" * {description}");
+                output.Add(" *");
+            }
+            
+            foreach (var param in paramValues.Keys)
+            {
+                output.Add($" * @{param} {paramValues[param]}");
+            }
+            output.Add(" */");
+            return output;
         }
     }
 }

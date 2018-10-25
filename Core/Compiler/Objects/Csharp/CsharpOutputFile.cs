@@ -6,17 +6,9 @@ namespace Nebula.Compiler.Objects.Csharp
 {
     public class CsharpOutputFile : OutputFile
     {
-        public CsharpOutputFile(RootObject root, TemplateMeta meta) : base(root)
+        public CsharpOutputFile(RootObject root, TemplateMeta meta) : base(root, meta)
         {
-            switch (root)
-            {
-                case CsharpEntityClass e:
-                    FileName = Path.Combine(meta.EntityLocation, $"{e.Name}.{GetFileExtension()}");
-                    break;
-                case CsharpClientClass c:
-                    FileName = Path.Combine(meta.ClientLocation, $"{c.Name}Client.{GetFileExtension()}");
-                    break;
-            }
+            
         }
 
         protected override string GetFileExtension()
