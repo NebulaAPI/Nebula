@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Nebula.Core.Compiler.Abstracts;
-using Nebula.Core.Models;
 using Nebula.SDK.Objects;
 
 namespace Nebula.Core.Compiler.Objects

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Nebula.Core.Compiler.Objects;
-using Nebula.Core.Models;
+using Nebula.SDK.Objects;
 
 namespace Nebula.Core.Plugin
 {

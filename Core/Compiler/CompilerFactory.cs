@@ -1,7 +1,6 @@
 using Nebula.Core.Compiler.Abstracts;
 using Nebula.Core.Compiler.Objects.Csharp;
 using Nebula.Core.Compiler.Objects.PHP;
-using Nebula.Core.Models;
 using Nebula.Core.Plugin;
 using Nebula.SDK.Objects;
 

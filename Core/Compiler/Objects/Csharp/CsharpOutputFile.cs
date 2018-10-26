@@ -1,5 +1,5 @@
 using System.IO;
-using Nebula.Core.Models;
+using Nebula.SDK.Objects;
 
 namespace Nebula.Core.Compiler.Objects.Csharp
 {

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Nebula.Core.Compiler.Objects;
-using Nebula.Core.Models;
 using Nebula.Core.Plugin;
 using Nebula.SDK.Objects;
 

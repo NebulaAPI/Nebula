@@ -5,7 +5,7 @@ using McMaster.Extensions.CommandLineUtils;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
-using Nebula.Core.Models;
+using Nebula.SDK.Objects;
 using Nebula.Core.Services;
 using Nebula.Core.Generators;
 

@@ -3,7 +3,6 @@ using System.Linq;
 using System;
 using System.Collections.Generic;
 using Nebula.Core.Compiler.Abstracts;
-using Nebula.Core.Models;
 using Nebula.Core.Plugin;
 using Nebula.Core.Compiler.Objects;
 using Nebula.SDK.Objects;

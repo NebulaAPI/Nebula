@@ -3,8 +3,8 @@ using System.IO;
 using System.Linq;
 using LibGit2Sharp;
 using Newtonsoft.Json;
-using Nebula.Core.Models;
-using Nebula.Core.Util;
+using Nebula.SDK.Objects;
+using Nebula.SDK.Util;
 
 namespace Nebula.Core.Services
 {
