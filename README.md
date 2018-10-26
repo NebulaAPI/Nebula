@@ -113,6 +113,10 @@ Upon building the project, each template is copied from the cache folder into th
 
 Nebula supports adding various functionality dynamically through the use of a plugin system. Plugins are installed using the CLI tool and are available globally to any project on that workstation. When a plugin is installed, its code is downloaded onto the workstation and compiled into a dynamic library that can be loaded on demand. Creating a plugin requires the installation of the .NET Core SDK. After creating a classlib project, all that is needed is to add the NebulaSDK NuGet package. This includes all of the necessary classes and interfaces for writing a plugin.
 
+## Registry
+
+The Registry is the online service that hosts templates and plugins. It exposes a public API for interacting with the service and has a web front-end for ease of use.
+
 ## Project Structure
 
 ## API Configuration
