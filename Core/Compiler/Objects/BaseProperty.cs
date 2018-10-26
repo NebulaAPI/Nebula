@@ -1,4 +1,4 @@
-namespace Nebula.Compiler.Objects
+namespace Nebula.Core.Compiler.Objects
 {
     public class BaseProperty : RootObject
     {

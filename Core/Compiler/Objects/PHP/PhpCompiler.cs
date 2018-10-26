@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.Plugin;
-using Nebula.Compiler.Abstracts;
-using Nebula.Models;
-using Nebula.Parser;
-using Nebula.Util;
+using Nebula.Core.Compiler.Abstracts;
+using Nebula.Core.Models;
+using Nebula.Core.Plugin;
+using Nebula.SDK.Objects;
 
-namespace Core.Compiler.Objects.PHP
+namespace Nebula.Core.Compiler.Objects.PHP
 {
     public class PhpCompiler : AbstractCompiler
     {

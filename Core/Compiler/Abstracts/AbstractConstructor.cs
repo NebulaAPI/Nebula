@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using Nebula.Compiler.Objects;
+using Nebula.Core.Compiler.Objects;
 
-namespace Nebula.Compiler.Abstracts
+namespace Nebula.Core.Compiler.Abstracts
 {
     /// <summary>
     /// This object represents a class constructor for a given language

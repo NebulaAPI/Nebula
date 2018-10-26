@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using Nebula.Models;
 
-namespace Nebula.Models
+namespace Nebula.Core.Models
 {
     public class TemplateManifest
     {

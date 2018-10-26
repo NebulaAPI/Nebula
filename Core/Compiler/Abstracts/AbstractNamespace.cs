@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using Nebula.Compiler.Interfaces;
-using Nebula.Compiler.Objects;
+using Nebula.Core.Compiler.Objects;
 
-namespace Nebula.Compiler.Abstracts
+namespace Nebula.Core.Compiler.Abstracts
 {
     /// <summary>
     /// This class forms the top of the 'compiled' structure of nodes

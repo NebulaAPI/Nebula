@@ -1,19 +1,19 @@
 using System.IO;
 using LibGit2Sharp;
-using Nebula.Models;
 using System.Linq;
 using System.Collections.Generic;
 using System;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
-using Nebula.Parser;
-using Nebula.Renderers;
-using Nebula.Compiler;
-using Nebula.Util;
-using Core.Models;
-using Core.Plugin;
+using Nebula.Core.Models;
+using Nebula.SDK.Objects;
+using Nebula.Core.Parser;
+using Nebula.Core.Plugin;
+using Nebula.Core.Compiler;
+using Nebula.Core.Renderers;
+using Nebula.Core.Util;
 
-namespace Core.Services
+namespace Nebula.Core.Services
 {
     public class ProjectService
     {

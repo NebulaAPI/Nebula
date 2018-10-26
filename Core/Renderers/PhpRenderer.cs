@@ -1,14 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.Compiler.Objects;
-using Core.Plugin;
-using Nebula.Compiler.Abstracts;
-using Nebula.Compiler.Objects;
-using Nebula.Parser;
-using Nebula.Renderers;
-using Nebula.Util;
+using Nebula.Core.Compiler.Abstracts;
+using Nebula.Core.Compiler.Objects;
+using Nebula.Core.Plugin;
+using Nebula.Core.Util;
+using Nebula.SDK.Objects;
 
-namespace Core.Renderers
+namespace Nebula.Core.Renderers
 {
     public class PhpRenderer : AbstractRenderer
     {

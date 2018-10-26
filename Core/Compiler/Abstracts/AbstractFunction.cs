@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using Nebula.Compiler.Objects;
-using Nebula.Parser;
+using Nebula.Core.Compiler.Objects;
+using Nebula.SDK.Objects;
 
-namespace Nebula.Compiler.Abstracts
+namespace Nebula.Core.Compiler.Abstracts
 {
     /// <summary>
     /// This object represents a function for a given language

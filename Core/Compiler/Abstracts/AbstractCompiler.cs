@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Plugin;
-using Nebula.Compiler.Objects;
-using Nebula.Models;
-using Nebula.Parser;
+using Nebula.Core.Compiler.Objects;
+using Nebula.Core.Models;
+using Nebula.Core.Plugin;
+using Nebula.SDK.Objects;
 
-namespace Nebula.Compiler.Abstracts
+namespace Nebula.Core.Compiler.Abstracts
 {
     public class AbstractCompiler
     {

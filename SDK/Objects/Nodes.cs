@@ -3,8 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Nebula.Parser
+namespace Nebula.SDK.Objects
 {
+    public enum TokenType
+    {
+        Number,
+        String,
+        Boolean,
+        Keyword,
+        Variable,
+        Punctuation,
+        Operation,
+        GetFunction,
+        PostFunction,
+        PutFunction,
+        DeleteFunction,
+        PatchFunction,
+        ReturnValue
+    }
+    
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class ChildAttribute : Attribute
     {
@@ -91,6 +108,27 @@ namespace Nebula.Parser
         
         public NamedNode(string type) : base(type)
         {
+        }
+    }
+
+    public class JsonObject : NamedNode
+    {
+        public List<JsonObject> Children { get; set; }
+
+        public dynamic Value { get; set; }
+
+        public bool IsObject { get; set; }
+        
+        public bool IsArray { get; set; }
+        
+        public bool IsValue { get; set; }
+        
+        public JsonObject() : base("jobj")
+        {
+            Children = new List<JsonObject>();
+            IsArray = false;
+            IsObject = false;
+            IsValue = false;
         }
     }
 

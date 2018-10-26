@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using Nebula.Compiler.Abstracts;
-using Nebula.Parser;
 
-namespace Core.Plugin
+namespace Nebula.Core.Plugin
 {
     public interface IRenderPlugin
     {

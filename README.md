@@ -101,6 +101,18 @@ If all goes well, inside the `sample-project/out` folder there should be a folde
 
 ## Templates
 
+Templates determine how to structure the generated client code into a meaningful, consumable library. Every template is associated with a specific programming language. Each output language that Nebula supports is added via a plugin. Each language plugin supports additional extensions that are provided by the template itself. Because the main structure of code for a given language is fairly consistent, the only parts that can vary are the actual implementation details of the functions themselves, which is HTTP transport library specific. 
+
+Each template contains a JSON file which describes various different things about how the system should interact with that template. Once of those things includes its dependencies. The most important dependency is that of which language plugin and version to use. There could be many different plugins for the same language that each generate the code in a different way. For a template, only one language plugin can be specified.
+
+When a template is added to a project, Nebula first checks to see what its dependencies are, and if anything required is not yet installed, it will install it. Once the dependencies are satisfied, the template itself is installed into a cache directory. The template installation process includes compiling the extension code into a dynamic library which is loaded automatically during the build process.
+
+Upon building the project, each template is copied from the cache folder into the appropriate output directory and customized. 
+
+## Plugins
+
+Nebula supports adding various functionality dynamically through the use of a plugin system. Plugins are installed using the CLI tool and are available globally to any project on that workstation. When a plugin is installed, its code is downloaded onto the workstation and compiled into a dynamic library that can be loaded on demand. Creating a plugin requires the installation of the .NET Core SDK. After creating a classlib project, all that is needed is to add the NebulaSDK NuGet package. This includes all of the necessary classes and interfaces for writing a plugin.
+
 ## Project Structure
 
 ## API Configuration

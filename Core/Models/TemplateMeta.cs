@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Nebula.Models
+namespace Nebula.Core.Models
 {
     public class TemplateFile
     {

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Nebula.Compiler.Objects;
-using Nebula.Models;
-using Nebula.Parser;
+using Nebula.Core.Compiler.Objects;
+using Nebula.Core.Models;
+using Nebula.SDK.Objects;
 
-namespace Nebula.Compiler.Abstracts
+namespace Nebula.Core.Compiler.Abstracts
 {
     /// <summary>
     /// This object represents a 'class' construct within a given language.

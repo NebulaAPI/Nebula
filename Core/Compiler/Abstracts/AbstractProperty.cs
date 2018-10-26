@@ -1,7 +1,7 @@
-using Nebula.Compiler.Objects;
-using Nebula.Parser;
+using Nebula.Core.Compiler.Objects;
+using Nebula.SDK.Objects;
 
-namespace Nebula.Compiler.Abstracts
+namespace Nebula.Core.Compiler.Abstracts
 {
     /// <summary>
     /// This object represents a property with a getter and setter for a given language.

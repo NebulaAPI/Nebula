@@ -1,6 +1,6 @@
 using System.Linq;
 
-namespace Nebula.Compiler.Objects
+namespace Nebula.Core.Compiler.Objects
 {
     public enum Visibility
     {

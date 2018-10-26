@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Nebula.Util;
+using Nebula.Core.Util;
 using Newtonsoft.Json;
 
-namespace Nebula.Models
+namespace Nebula.Core.Models
 {
     public class Project
     {

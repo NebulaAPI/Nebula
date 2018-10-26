@@ -2,19 +2,15 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
-using Nebula.Models;
-using Nebula.Parser;
-using Core.Services;
-using Nebula.Util;
 using System.Linq;
 using System;
-using Nebula.Compiler.Objects.Csharp;
-using Nebula.Compiler.Objects;
-using Nebula.Compiler.Abstracts;
-using Core.Plugin;
-using Core.Compiler.Objects;
+using Nebula.Core.Compiler.Abstracts;
+using Nebula.Core.Plugin;
+using Nebula.SDK.Objects;
+using Nebula.Core.Util;
+using Nebula.Core.Compiler.Objects;
 
-namespace Nebula.Renderers
+namespace Nebula.Core.Renderers
 {
     public class CSharpRenderer : AbstractRenderer
     {

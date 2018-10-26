@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Nebula.Models;
+using Nebula.Core.Models;
+using Nebula.SDK.Objects;
 
-namespace Nebula.Parser
+namespace Nebula.Core.Parser
 {
     /// <summary>
     /// This class is responsible for checking that specified data types exist

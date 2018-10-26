@@ -1,29 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using Nebula.SDK.Objects;
 using SharpPad;
 
-namespace Nebula.Parser
+namespace Nebula.Core.Parser
 {
-    public class JsonObject : NamedNode
-    {
-        public List<JsonObject> Children { get; set; }
-
-        public dynamic Value { get; set; }
-
-        public bool IsObject { get; set; }
-        
-        public bool IsArray { get; set; }
-        
-        public bool IsValue { get; set; }
-        
-        public JsonObject() : base("jobj")
-        {
-            Children = new List<JsonObject>();
-            IsArray = false;
-            IsObject = false;
-            IsValue = false;
-        }
-    }
+    
 
     public class JsonParser : Parser
     {

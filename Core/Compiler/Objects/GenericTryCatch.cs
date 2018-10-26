@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using Nebula.Compiler.Objects;
 
-namespace Core.Compiler.Objects
+namespace Nebula.Core.Compiler.Objects
 {
     public class GenericTryCatch : RootObject
     {

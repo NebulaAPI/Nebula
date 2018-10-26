@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using Nebula.SDK.Objects;
 
-namespace Nebula.Parser
+namespace Nebula.Core.Parser
 {
     public class NebulaParser : Parser
     {

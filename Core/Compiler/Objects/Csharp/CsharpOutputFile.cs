@@ -1,8 +1,7 @@
 using System.IO;
-using Nebula.Models;
-using Nebula.Parser;
+using Nebula.Core.Models;
 
-namespace Nebula.Compiler.Objects.Csharp
+namespace Nebula.Core.Compiler.Objects.Csharp
 {
     public class CsharpOutputFile : OutputFile
     {

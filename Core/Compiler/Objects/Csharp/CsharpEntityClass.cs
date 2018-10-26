@@ -1,8 +1,9 @@
 using System.Linq;
-using Nebula.Compiler.Abstracts;
-using Nebula.Parser;
+using Nebula.Core.Compiler.Abstracts;
+using Nebula.Core.Compiler.Objects.Csharp;
+using Nebula.SDK.Objects;
 
-namespace Nebula.Compiler.Objects.Csharp
+namespace Nebula.Core.Compiler.Objects.Csharp
 {
     public class CsharpEntityClass : CsharpClass<EntityNode>
     {

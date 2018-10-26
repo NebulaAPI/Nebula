@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Nebula.Models;
 using LibGit2Sharp;
 using Newtonsoft.Json;
-using CLI.Util;
+using Nebula.Core.Models;
+using Nebula.Core.Util;
 
-namespace Core.Services
+namespace Nebula.Core.Services
 {
     public class TemplateService
     {

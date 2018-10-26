@@ -1,12 +1,10 @@
 using System.Collections.Generic;
-using Nebula.Compiler.Abstracts;
-using Nebula.Compiler.Interfaces;
-using Nebula.Parser;
 using System.Linq;
 using System;
-using Nebula.Models;
+using Nebula.Core.Compiler.Abstracts;
+using Nebula.SDK.Objects;
 
-namespace Nebula.Compiler.Objects.Csharp
+namespace Nebula.Core.Compiler.Objects.Csharp
 {
     public abstract class CsharpClass<T> : AbstractClass<T> where T : MainObjectNode
     {

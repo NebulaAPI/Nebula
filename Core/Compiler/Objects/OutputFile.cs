@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Nebula.Compiler.Abstracts;
-using Nebula.Models;
-using Nebula.Parser;
+using Nebula.Core.Compiler.Abstracts;
+using Nebula.Core.Models;
+using Nebula.SDK.Objects;
 
-namespace Nebula.Compiler.Objects
+namespace Nebula.Core.Compiler.Objects
 {
     public abstract class OutputFile
     {

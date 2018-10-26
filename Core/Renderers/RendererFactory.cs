@@ -1,8 +1,7 @@
-using Core.Plugin;
-using Core.Renderers;
-using Nebula.Compiler.Abstracts;
+using Nebula.Core.Compiler.Abstracts;
+using Nebula.Core.Plugin;
 
-namespace Nebula.Renderers
+namespace Nebula.Core.Renderers
 {
     public class RendererFactory
     {

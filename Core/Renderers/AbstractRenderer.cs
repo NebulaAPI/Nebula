@@ -1,15 +1,14 @@
 using System.IO;
-using Nebula.Models;
-using Nebula.Parser;
 using System.Linq;
 using System;
-using Nebula.Compiler.Abstracts;
-using Nebula.Compiler.Objects;
 using System.Collections.Generic;
-using Core.Plugin;
-using Core.Compiler.Objects;
+using Nebula.Core.Compiler.Abstracts;
+using Nebula.Core.Models;
+using Nebula.Core.Plugin;
+using Nebula.Core.Compiler.Objects;
+using Nebula.SDK.Objects;
 
-namespace Nebula.Renderers
+namespace Nebula.Core.Renderers
 {
     public abstract class AbstractRenderer
     {

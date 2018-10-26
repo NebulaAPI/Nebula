@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace Nebula.Util
+namespace Nebula.Core.Util
 {
     public static class StringUtils
     {

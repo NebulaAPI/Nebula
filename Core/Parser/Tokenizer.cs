@@ -1,26 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Nebula.SDK.Objects;
 
-namespace Nebula.Parser
+namespace Nebula.Core.Parser
 {
-    public enum TokenType
-    {
-        Number,
-        String,
-        Boolean,
-        Keyword,
-        Variable,
-        Punctuation,
-        Operation,
-        GetFunction,
-        PostFunction,
-        PutFunction,
-        DeleteFunction,
-        PatchFunction,
-        ReturnValue
-    }
-    
     public class Token
     {
         public string Value { get; private set; }

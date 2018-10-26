@@ -1,4 +1,4 @@
-namespace CLI.Models
+namespace Nebula.Core.Models
 {
     public class EntityField
     {

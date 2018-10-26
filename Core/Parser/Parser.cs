@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Nebula.SDK.Objects;
 
-namespace Nebula.Parser
+namespace Nebula.Core.Parser
 {
     public abstract class Parser
     {

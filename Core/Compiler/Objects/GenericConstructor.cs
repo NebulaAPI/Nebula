@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Nebula.Compiler.Objects
+namespace Nebula.Core.Compiler.Objects
 {
     public class GenericConstructor : RootObject
     {

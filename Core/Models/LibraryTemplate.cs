@@ -1,4 +1,4 @@
-namespace Nebula.Models
+namespace Nebula.Core.Models
 {
     /// <summary>
     /// "name": ".NET Standard C#",

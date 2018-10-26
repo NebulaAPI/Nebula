@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace CLI.Util
+namespace Nebula.Core.Util
 {
     public class ConsoleTable
     {
@@ -196,20 +196,20 @@ namespace CLI.Util
             return columnLengths;
         }
 
-        public void Write(Format format = CLI.Util.Format.Default)
+        public void Write(Format format = Nebula.Core.Util.Format.Default)
         {
             switch (format)
             {
-                case CLI.Util.Format.Default:
+                case Nebula.Core.Util.Format.Default:
                     Console.WriteLine(ToString());
                     break;
-                case CLI.Util.Format.MarkDown:
+                case Nebula.Core.Util.Format.MarkDown:
                     Console.WriteLine(ToMarkDownString());
                     break;
-                case CLI.Util.Format.Alternative:
+                case Nebula.Core.Util.Format.Alternative:
                     Console.WriteLine(ToStringAlternative());
                     break;
-                case CLI.Util.Format.Minimal:
+                case Nebula.Core.Util.Format.Minimal:
                     Console.WriteLine(ToMinimalString());
                     break;
                 default:

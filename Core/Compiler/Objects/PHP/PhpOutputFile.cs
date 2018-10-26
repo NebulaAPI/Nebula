@@ -1,10 +1,7 @@
 using System.IO;
-using Nebula.Compiler.Abstracts;
-using Nebula.Compiler.Objects;
-using Nebula.Models;
-using Nebula.Parser;
+using Nebula.Core.Models;
 
-namespace Core.Compiler.Objects.PHP
+namespace Nebula.Core.Compiler.Objects.PHP
 {
     public class PhpOutputFile : OutputFile
     {

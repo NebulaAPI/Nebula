@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace CLI.Models
+namespace Nebula.Core.Models
 {
     public class Entity
     {

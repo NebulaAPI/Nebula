@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Nebula.Parser
+namespace Nebula.Core.Parser
 {
     public class InputStream
     {

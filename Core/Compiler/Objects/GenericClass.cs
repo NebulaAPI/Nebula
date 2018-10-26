@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using Nebula.Compiler.Abstracts;
 
-namespace Nebula.Compiler.Objects
+namespace Nebula.Core.Compiler.Objects
 {
     public class GenericClass : RootObject
     {

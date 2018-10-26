@@ -1,15 +1,13 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
-using Nebula.Parser;
 using McMaster.Extensions.CommandLineUtils;
-using Core.Services;
 using System.Linq;
-using Nebula.Generators;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
-using Core.Models;
-using CLI.Util;
+using Nebula.Core.Models;
+using Nebula.Core.Services;
+using Nebula.Core.Generators;
 
 namespace Nebula
 {

@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Core.Plugin;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Nebula.Models;
+using Nebula.Core.Plugin;
 
-namespace Core.Services
+namespace Nebula.Core.Services
 {
     /// <summary>
     /// This service is responsible for creating a plugin class instance from the 

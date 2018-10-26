@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using CLI.Models;
-using Nebula.Models;
-using Nebula.Parser;
-using Nebula.Util;
+using Nebula.Core.Models;
+using Nebula.Core.Parser;
+using Nebula.Core.Util;
+using Nebula.SDK.Objects;
 using Newtonsoft.Json;
 using SharpPad;
 
-namespace Nebula.Generators
+namespace Nebula.Core.Generators
 {
     public class EntityGenerator
     {

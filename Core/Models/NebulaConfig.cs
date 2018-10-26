@@ -1,4 +1,4 @@
-namespace Core.Models
+namespace Nebula.Core.Models
 {
     public static class NebulaConfig
     {

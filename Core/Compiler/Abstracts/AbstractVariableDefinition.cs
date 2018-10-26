@@ -1,7 +1,7 @@
-using Nebula.Compiler.Objects;
-using Nebula.Parser;
+using Nebula.Core.Compiler.Objects;
+using Nebula.SDK.Objects;
 
-namespace Nebula.Compiler.Abstracts
+namespace Nebula.Core.Compiler.Abstracts
 {
     /// <summary>
     /// The object represents a variable definition for a given language

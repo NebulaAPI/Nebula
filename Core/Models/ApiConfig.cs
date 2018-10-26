@@ -1,4 +1,4 @@
-namespace Nebula.Models
+namespace Nebula.Core.Models
 {
     public enum AuthenticationMethod
     {

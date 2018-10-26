@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Nebula.Compiler.Objects;
-using Nebula.Models;
+using Nebula.Core.Compiler.Objects;
+using Nebula.Core.Models;
 
-namespace Core.Plugin
+namespace Nebula.Core.Plugin
 {
     public interface ICompilerPlugin
     {

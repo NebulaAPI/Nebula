@@ -1,11 +1,11 @@
-using Core.Plugin;
-using Nebula.Compiler.Abstracts;
-using Nebula.Models;
-using Nebula.Parser;
+using Nebula.Core.Compiler.Abstracts;
+using Nebula.Core.Models;
+using Nebula.Core.Plugin;
+using Nebula.SDK.Objects;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Nebula.Compiler.Objects.Csharp
+namespace Nebula.Core.Compiler.Objects.Csharp
 {
     public class CsharpCompiler : AbstractCompiler
     {
