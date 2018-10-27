@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Nebula.Core.Plugin;
+using Nebula.SDK.Plugin;
 
 namespace Nebula.Core.Services
 {

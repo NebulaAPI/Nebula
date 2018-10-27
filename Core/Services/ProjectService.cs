@@ -7,9 +7,9 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Nebula.SDK.Objects;
 using Nebula.Core.Parser;
-using Nebula.Core.Plugin;
-using Nebula.Core.Compiler;
-using Nebula.Core.Renderers;
+using Nebula.SDK.Plugin;
+using Nebula.SDK.Compiler;
+using Nebula.SDK.Renderers;
 using Nebula.SDK.Util;
 
 namespace Nebula.Core.Services
@@ -157,12 +157,14 @@ namespace Nebula.Core.Services
                 var renderPlugin = pluginService.GetPlugin<IRenderPlugin>();
                 var compilerPlugin = pluginService.GetPlugin<ICompilerPlugin>();
 
-                var compiler = CompilerFactory.Get(t.Language, p, projectNode, templateMeta, compilerPlugin);
+                var compiler = CompilerFactory.Get(t.Language);
+                compiler.Init(p, projectNode, templateMeta, compilerPlugin);
+                var outputFiles = compiler.Compile();
                 var renderer = RendererFactory.Get(t.Language, compiler, renderPlugin);
                 
                 var destinationDirectory = PrepareOutputDir(p, templateMeta);
-                renderer.Render(compiler.OutputFiles, p, templateMeta);
-                foreach (var file in compiler.OutputFiles)
+                renderer.Render(outputFiles, p, templateMeta);
+                foreach (var file in outputFiles)
                 {
                     var outputFileName = Path.Combine(destinationDirectory, templateMeta.SourceFolder, file.FileName);
                     File.WriteAllText(outputFileName, file.GetFileContent());
