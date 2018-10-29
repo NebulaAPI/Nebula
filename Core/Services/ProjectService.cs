@@ -153,7 +153,7 @@ namespace Nebula.Core.Services
                 var pluginFiles = new List<string>();
                 GenerateFileList(templatePluginFileFolder, pluginFiles, ".cs");
 
-                var pluginService = new PluginService(pluginFiles.ToArray());
+                var pluginService = new PluginService("");
                 var renderPlugin = pluginService.GetPlugin<IRenderPlugin>();
                 var compilerPlugin = pluginService.GetPlugin<ICompilerPlugin>();
 

@@ -8,6 +8,9 @@ using System.Reflection;
 using Nebula.SDK.Objects;
 using Nebula.Core.Services;
 using Nebula.Core.Generators;
+using static System.Environment;
+using System.Collections.Generic;
+using Nebula.Core.Services.API;
 
 namespace Nebula
 {
@@ -21,17 +24,38 @@ namespace Nebula
     {
         public static void Main(string[] args)
         {
-            var appPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            var appDataFolder = Environment.GetFolderPath(SpecialFolder.LocalApplicationData);
+            PrepLocalDirectories(appDataFolder);
+            Console.WriteLine(appDataFolder);
+            
             var builder = new ConfigurationBuilder()
-                .SetBasePath(appPath)
+                .SetBasePath(NebulaConfig.ConfigurationDirectory)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
             IConfigurationRoot configuration = builder.Build();
             
             NebulaConfig.TemplateManifestRepo = configuration.GetSection("TemplateManifest").Value;
             NebulaConfig.ProjectSkeletonRepo = configuration.GetSection("ProjectSkeleton").Value;
+
+            var client = new RegistryApiClient();
+            var plugin = client.GetPluginMeta("Test");
+            Console.WriteLine(plugin.Name);
             
             CommandLineApplication.Execute<Nebula>(args);
+        }
+
+        private static void PrepLocalDirectories(string appDataFolder)
+        {
+            var rootFolder = Path.Combine(appDataFolder, "nebula");
+            var pluginFolder = Path.Combine(rootFolder, "plugins");
+            var templateFolder = Path.Combine(rootFolder, "templates");
+
+            var folders = new List<string> { pluginFolder, templateFolder };
+            folders.ForEach(f => Directory.CreateDirectory(f));
+
+            NebulaConfig.PluginDirectory = pluginFolder;
+            NebulaConfig.TemplateDirectory = templateFolder;
+            NebulaConfig.ConfigurationDirectory = rootFolder;
         }
 
         private int OnExecute(CommandLineApplication app, IConsole console)

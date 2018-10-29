@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.9.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="RestSharp" Version="106.5.4" />
     <PackageReference Include="SharpPad" Version="1.0.4" />
   </ItemGroup>
 

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Nebula.SDK.Objects;
 
 namespace API
 {
@@ -14,6 +15,10 @@ namespace API
     {
         public static void Main(string[] args)
         {
+            NebulaConfig.PluginDirectory = "/nebula/plugins";
+            NebulaConfig.TemplateDirectory = "/nebula/templates";
+            NebulaConfig.TempDirectory = "/nebula/tmp";
+            
             CreateWebHostBuilder(args).Build().Run();
         }
 

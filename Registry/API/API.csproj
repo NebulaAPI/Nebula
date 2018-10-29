@@ -9,8 +9,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="LibGit2Sharp" Version="0.25.2" />
+    <PackageReference Include="LibGit2Sharp.NativeBinaries" Version="1.0.217" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.1.2" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Core.csproj" />
+    <ProjectReference Include="..\..\SDK\SDK.csproj" />
+    <ProjectReference Include="..\..\Common\Data\Data.csproj" />
+    <ProjectReference Include="..\..\Common\APIServices\APIServices.csproj" />
   </ItemGroup>
 
 </Project>
