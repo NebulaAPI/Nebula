@@ -1,5 +1,8 @@
+using System;
+using System.Collections.Generic;
 using Core.Services.API;
 using Nebula.SDK.Objects;
+using Nebula.SDK.Objects.Client;
 using RestSharp;
 
 namespace Nebula.Core.Services.API
@@ -18,11 +21,30 @@ namespace Nebula.Core.Services.API
             Client.Execute(req);
         }
 
-        public PluginMeta GetPluginMeta(string name)
+        public List<Plugin> SearchPlugins(string query)
+        {
+            var req = new RestRequest("/plugin/search/{query}", Method.GET, DataFormat.Json);
+            req.AddUrlSegment("query", query);
+            var response = Client.Execute<List<Plugin>>(req);
+            if (response.ErrorException != null)
+            {
+                throw new Exception(response.ErrorException.Message);
+            }
+
+            return response.Data;
+        }
+
+        public Plugin GetPlugin(string name)
         {
             var req = new RestRequest("/plugin/{name}", Method.GET, DataFormat.Json);
             req.AddUrlSegment("name", name);
-            return Client.Execute<PluginMeta>(req).Data;
+            var response = Client.Execute<Plugin>(req);
+            if (response.ErrorException != null)
+            {
+                throw new Exception(response.ErrorException.Message);
+            }
+
+            return response.Data;
         }
     }
 }

@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Nebula.SDK.Util
 {
@@ -39,6 +42,27 @@ namespace Nebula.SDK.Util
                 var nextTargetSubDir =
                     target.CreateSubdirectory(diSourceSubDir.Name);
                 CopyAll(diSourceSubDir, nextTargetSubDir);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="folder"></param>
+        /// <param name="allFiles"></param>
+        /// <param name="ext"></param>
+        /// <param name="replaceFunc"></param>
+        public static void GenerateFileList(string folder, List<string> allFiles, string ext = ".neb", Func<string, string> replaceFunc = null)
+        {
+            var filesInThisFolder = Directory
+                .GetFiles(folder)
+                .Select(f => replaceFunc(f) ?? f)//f.Replace(CurrentProject.SourceDirectory + Path.DirectorySeparatorChar, ""))
+                .Where(f => f.EndsWith(ext));
+            allFiles.AddRange(filesInThisFolder);
+            var folders = Directory.GetDirectories(folder);
+            foreach (var f in folders)
+            {
+                GenerateFileList(f, allFiles);
             }
         }
     }

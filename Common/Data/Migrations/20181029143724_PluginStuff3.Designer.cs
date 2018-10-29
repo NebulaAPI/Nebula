@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Nebula.Common.Data;
 
 namespace Data.Migrations
 {
     [DbContext(typeof(NebulaContext))]
-    partial class NebulaContextModelSnapshot : ModelSnapshot
+    [Migration("20181029143724_PluginStuff3")]
+    partial class PluginStuff3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,8 +38,6 @@ namespace Data.Migrations
 
                     b.Property<DateTime>("Published");
 
-                    b.Property<string>("RepositoryUrl");
-
                     b.Property<Guid>("UploadedById");
 
                     b.Property<bool>("Verified");
@@ -47,24 +47,6 @@ namespace Data.Migrations
                     b.HasIndex("UploadedById");
 
                     b.ToTable("Plugins");
-                });
-
-            modelBuilder.Entity("Nebula.Common.Data.Models.PluginDependency", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("Name");
-
-                    b.Property<Guid?>("PluginId");
-
-                    b.Property<string>("VersionPattern");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PluginId");
-
-                    b.ToTable("PluginDependency");
                 });
 
             modelBuilder.Entity("Nebula.Common.Data.Models.PluginVersion", b =>
@@ -103,8 +85,6 @@ namespace Data.Migrations
                     b.Property<string>("Name");
 
                     b.Property<DateTime>("Published");
-
-                    b.Property<string>("RepositoryUrl");
 
                     b.Property<Guid>("UploadedById");
 
@@ -167,13 +147,6 @@ namespace Data.Migrations
                         .WithMany()
                         .HasForeignKey("UploadedById")
                         .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("Nebula.Common.Data.Models.PluginDependency", b =>
-                {
-                    b.HasOne("Nebula.Common.Data.Models.Plugin")
-                        .WithMany("Dependencies")
-                        .HasForeignKey("PluginId");
                 });
 
             modelBuilder.Entity("Nebula.Common.Data.Models.PluginVersion", b =>

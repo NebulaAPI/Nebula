@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
-using Nebula.SDK.Objects.Shared;
 
-namespace Nebula.Common.Data.Models
+namespace Nebula.SDK.Objects.Shared
 {
-    public class Template
+    public class BasePlugin
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
@@ -17,7 +15,5 @@ namespace Nebula.Common.Data.Models
         public User UploadedBy { get; set; }
         public Guid UploadedById { get; set; }
         public string RepositoryUrl { get; set; }
-
-        public ICollection<TemplateVersion> Versions { get; set; }
     }
 }

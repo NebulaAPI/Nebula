@@ -151,7 +151,7 @@ namespace Nebula.Core.Services
 
                 var templatePluginFileFolder = Path.Combine(p.TemplateDirectory, t.Name, templateMeta.PluginLocation.Trim(Path.DirectorySeparatorChar));
                 var pluginFiles = new List<string>();
-                GenerateFileList(templatePluginFileFolder, pluginFiles, ".cs");
+                GenerateFileList(templatePluginFileFolder, pluginFiles, ".cs", (f) => f.Replace(CurrentProject.SourceDirectory + Path.DirectorySeparatorChar, ""));
 
                 var pluginService = new PluginService("");
                 var renderPlugin = pluginService.GetPlugin<IRenderPlugin>();
@@ -201,20 +201,6 @@ namespace Nebula.Core.Services
             var absoluteFile = Path.Combine(CurrentProject.SourceDirectory, inputFile);
             var parser = new NebulaParser(absoluteFile);
             return parser.Parse(moduleName);
-        }
-
-        private void GenerateFileList(string folder, List<string> allFiles, string ext = ".neb")
-        {
-            var filesInThisFolder = Directory
-                .GetFiles(folder)
-                .Select(f => f.Replace(CurrentProject.SourceDirectory + Path.DirectorySeparatorChar, ""))
-                .Where(f => f.EndsWith(ext));
-            allFiles.AddRange(filesInThisFolder);
-            var folders = Directory.GetDirectories(folder);
-            foreach (var f in folders)
-            {
-                GenerateFileList(f, allFiles);
-            }
         }
     }
 }

@@ -1,9 +1,11 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using LibGit2Sharp;
 using Nebula.SDK.Objects;
 using Newtonsoft.Json;
 
-namespace Nebula.Common.API.Services
+namespace Nebula.Core.Services.Server
 {
     public class RegistryService
     {
@@ -18,7 +20,16 @@ namespace Nebula.Common.API.Services
                 throw new System.Exception($"Repository does not contain nebula-meta.json: {metaFile}");
             }
             var meta = JsonConvert.DeserializeObject<PluginMeta>(File.ReadAllText(metaFile));
+            meta.TempFolder = tmpPath;
             return meta;
+        }
+
+        public Dictionary<string, string> GetVersions(PluginMeta plugin)
+        {
+            using (var repo = new Repository(plugin.TempFolder))
+            {
+                return repo.Tags.ToDictionary(t => t.FriendlyName, t => t.Reference.TargetIdentifier);
+            }
         }
     }
 }

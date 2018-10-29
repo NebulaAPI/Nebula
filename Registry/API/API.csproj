@@ -13,13 +13,14 @@
     <PackageReference Include="LibGit2Sharp.NativeBinaries" Version="1.0.217" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.1.2" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.1.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.1.4" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Core.csproj" />
     <ProjectReference Include="..\..\SDK\SDK.csproj" />
     <ProjectReference Include="..\..\Common\Data\Data.csproj" />
-    <ProjectReference Include="..\..\Common\APIServices\APIServices.csproj" />
   </ItemGroup>
 
 </Project>

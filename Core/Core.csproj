@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <PackageId>NebulaCore</PackageId>
     <Version>1.0.0</Version>
     <Authors>Jason Miesionczek</Authors>
@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SDK\SDK.csproj" />
+    <ProjectReference Include="..\Common\Data\Data.csproj" />
   </ItemGroup>
 
 </Project>

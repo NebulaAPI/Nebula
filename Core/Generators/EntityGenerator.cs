@@ -71,7 +71,7 @@ namespace Nebula.Core.Generators
             return Console.ReadLine();
         }
 
-        private void FindAndPrompt(JsonObject obj, Entity parentEntity)
+        private void FindAndPrompt(SDK.Objects.JsonObject obj, Entity parentEntity)
         {
             if (obj.IsObject)
             {

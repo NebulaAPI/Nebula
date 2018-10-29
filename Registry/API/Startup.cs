@@ -10,7 +10,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Nebula.Common.API.Services;
+using Nebula.Common.Data;
+using Nebula.Core.Services.Server;
 
 namespace API
 {
@@ -27,6 +28,7 @@ namespace API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddScoped<RegistryService, RegistryService>();
+            services.AddDbContext<NebulaContext>();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
 
