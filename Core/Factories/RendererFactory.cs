@@ -1,7 +1,8 @@
 using Nebula.SDK.Compiler.Abstracts;
 using Nebula.SDK.Plugin;
+using Nebula.SDK.Renderers;
 
-namespace Nebula.SDK.Renderers
+namespace Nebula.Core.Factories
 {
     public class RendererFactory
     {
@@ -9,8 +10,8 @@ namespace Nebula.SDK.Renderers
         {
             switch(language.ToLower())
             {
-                case "c#": return new CSharpRenderer(compiler, renderPlugin);
-                case "php": return new PhpRenderer(compiler, renderPlugin);
+                case "c#": return null;//new CSharpRenderer(compiler, renderPlugin);
+                case "php": return null;//new PhpRenderer(compiler, renderPlugin);
                 default: return null;
             }    
         }

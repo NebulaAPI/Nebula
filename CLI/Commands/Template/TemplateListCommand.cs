@@ -1,6 +1,6 @@
 using System;
 using McMaster.Extensions.CommandLineUtils;
-using Nebula.Core.Services;
+using Nebula.Core.Services.Client;
 using Nebula.SDK.Objects;
 
 namespace CLI.Commands.Template

@@ -91,7 +91,7 @@ namespace Nebula.Core.Services.Client
             var pluginFiles = new List<string>();
             var assemblyFile = Path.Combine(pluginDir, $"{meta.Name}.dll");
             FileUtil.GenerateFileList(pluginDir, pluginFiles, ".cs", (f) => f);
-            return CompilationService.CompileLocal(assemblyFile, pluginFiles.ToArray());
+            return CompilationService.CompileLocal(meta.Name, assemblyFile, pluginFiles.ToArray());
         }
 
         /// <summary>
@@ -123,21 +123,30 @@ namespace Nebula.Core.Services.Client
         /// <param name="assemblies">Output from LoadAllPlugins()</param>
         /// <typeparam name="T">The type to search for</typeparam>
         /// <returns>List of instanced objects of the specified type</returns>
-        public List<T> SearchForType<T>(List<Assembly> assemblies)
+        public Dictionary<Assembly, List<T>> SearchForType<T>(List<Assembly> assemblies)
         {
-            var result = new List<T>();
+            var result = new Dictionary<Assembly, List<T>>();
             var searchActions = new List<Func<Assembly, IEnumerable<T>>> {
                 (a) => a.GetTypes().Where(t => t.GetInterfaces().Any(i => i.Name.Contains(typeof(T).Name))).Select(t => (T)Activator.CreateInstance(t)),
                 (a) => a.GetTypes().Where(t => t.BaseType == typeof(T)).Select(t => (T)Activator.CreateInstance(t)),
                 (a) => a.GetTypes().Where(t => t == typeof(T)).Select(t => (T)Activator.CreateInstance(t))
             };
 
-            assemblies
-                .ForEach(assembly => searchActions
-                    .Select(a => a(assembly))
-                    .ToList()
-                    .ForEach(sa => result.AddRange(sa))
-                );
+            foreach (var assembly in assemblies)
+            {
+                var types = searchActions.Select(a => a(assembly));
+                foreach (var t in types)
+                {
+                    if (result.ContainsKey(assembly))
+                    {
+                        result[assembly].AddRange(t.ToList());
+                    }
+                    else
+                    {
+                        result.Add(assembly, new List<T>(t));
+                    }
+                }
+            }
                 
             return result;
         }

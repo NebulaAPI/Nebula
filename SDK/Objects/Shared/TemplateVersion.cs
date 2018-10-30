@@ -1,6 +1,6 @@
 using System;
 
-namespace Nebula.Common.Data.Models
+namespace Nebula.SDK.Objects.Shared
 {
     public class TemplateVersion
     {

@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using McMaster.Extensions.CommandLineUtils;
 using Nebula.Core.Generators;
-using Nebula.Core.Services;
+using Nebula.Core.Services.Client;
 
 namespace CLI.Commands
 {

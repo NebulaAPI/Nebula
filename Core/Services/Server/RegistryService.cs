@@ -9,7 +9,7 @@ namespace Nebula.Core.Services.Server
 {
     public class RegistryService
     {
-        public PluginMeta Import(string repoUrl)
+        public PluginMeta ImportPlugin(string repoUrl)
         {
             var tmpPath = Path.GetRandomFileName();
             tmpPath = Path.Combine(NebulaConfig.TempDirectory, tmpPath);
@@ -24,12 +24,17 @@ namespace Nebula.Core.Services.Server
             return meta;
         }
 
-        public Dictionary<string, string> GetVersions(PluginMeta plugin)
+        public Dictionary<string, string> GetPluginVersions(PluginMeta plugin)
         {
             using (var repo = new Repository(plugin.TempFolder))
             {
                 return repo.Tags.ToDictionary(t => t.FriendlyName, t => t.Reference.TargetIdentifier);
             }
+        }
+
+        public void CleanUpTemp(string tmpPath)
+        {
+            Directory.Delete(tmpPath, true);
         }
     }
 }

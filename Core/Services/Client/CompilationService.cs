@@ -7,16 +7,16 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Nebula.SDK.Plugin;
 
-namespace Nebula.Core.Services
+namespace Nebula.Core.Services.Client
 {
     /// <summary>
     /// Class to handle generating a local or in-memory assembly
     /// </summary>
     public class CompilationService
     {
-        public Assembly CompileInMemory(params string[] files)
+        public Assembly CompileInMemory(string name, params string[] files)
         {
-            var compilation = GenerateCompilation(files);
+            var compilation = GenerateCompilation(name, files);
 
             var stream = new MemoryStream();
             var emitResult = compilation.Emit(stream);
@@ -30,9 +30,9 @@ namespace Nebula.Core.Services
             }
         }
         
-        public Assembly CompileLocal(string outputFile, params string[] files)
+        public Assembly CompileLocal(string name, string outputFile, params string[] files)
         {
-            var compilation = GenerateCompilation(files);
+            var compilation = GenerateCompilation(name, files);
 
             var fs = File.Create(outputFile);
             var result = compilation.Emit(fs);
@@ -45,13 +45,13 @@ namespace Nebula.Core.Services
             }
         }
 
-        private Compilation GenerateCompilation(params string[] files)
+        private Compilation GenerateCompilation(string assemblyName, params string[] files)
         {
             var sourceLanguage = new CSharpLanguage();
             var syntaxTrees = files.Select(s => sourceLanguage.ParseText(File.ReadAllText(s), SourceCodeKind.Regular));
 
             return sourceLanguage
-                .CreateLibraryCompilation(assemblyName: "InMemoryAssembly", enableOptimisations: false)
+                .CreateLibraryCompilation(assemblyName: assemblyName, enableOptimisations: false)
                 .AddSyntaxTrees(syntaxTrees.ToArray());
         }
         

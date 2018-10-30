@@ -4,7 +4,6 @@ using System.IO;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Mvc;
 using Nebula.Common.Data;
-using Nebula.Common.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Nebula.SDK.Objects.Server;
 using Nebula.SDK.Objects.Shared;
@@ -46,8 +45,8 @@ namespace API.Controllers
         [HttpPost]
         public Plugin Post([FromBody] string repoUrl)
         {
-            var meta = _registryService.Import(repoUrl);
-            var versions = _registryService.GetVersions(meta);
+            var meta = _registryService.ImportPlugin(repoUrl);
+            var versions = _registryService.GetPluginVersions(meta);
             var newPlugin = new Plugin {
                 Name = meta.Name,
                 Author = meta.Author,
@@ -72,6 +71,8 @@ namespace API.Controllers
 
             _nebulaContext.Plugins.Add(newPlugin);
             _nebulaContext.SaveChanges();
+
+            _registryService.CleanUpTemp(meta.TempFolder);
 
             return newPlugin;
         }

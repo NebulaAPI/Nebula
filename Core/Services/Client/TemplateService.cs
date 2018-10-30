@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using Nebula.SDK.Objects;
 using Nebula.SDK.Util;
 
-namespace Nebula.Core.Services
+namespace Nebula.Core.Services.Client
 {
     public class TemplateService
     {
@@ -126,12 +126,12 @@ namespace Nebula.Core.Services
         public void CustomizeTemplate(string templatePath, string templateName)
         {
             var templateMeta = GetTemplateMeta(templateName);
-            foreach (var file in templateMeta.FilesToRename)
+            foreach (var file in templateMeta.Configuration.FilesToRename.Keys)
             {
-                var fileToUpdate = Path.Combine(templatePath, file.OriginalName);
+                var fileToUpdate = Path.Combine(templatePath, file);
                 if (File.Exists(fileToUpdate))
                 {
-                    var newFileName = file.NewName.Replace("%%NAME%%", CurrentProject.Name);
+                    var newFileName = templateMeta.Configuration.FilesToRename[file].Replace("%%NAME%%", CurrentProject.Name);
                     File.Move(fileToUpdate, Path.Combine(templatePath, newFileName));
                 }
             }

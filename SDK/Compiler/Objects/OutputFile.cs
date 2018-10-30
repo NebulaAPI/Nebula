@@ -24,10 +24,10 @@ namespace Nebula.SDK.Compiler.Objects
             switch (root)
             {
                 case AbstractClass<EntityNode> e:
-                    FileName = Path.Combine(meta.EntityLocation, $"{e.Name}.{GetFileExtension()}");
+                    FileName = Path.Combine(meta.Configuration.EntityLocation, $"{e.Name}.{GetFileExtension()}");
                     break;
                 case AbstractClass<ApiNode> c:
-                    FileName = Path.Combine(meta.ClientLocation, $"{c.Name}Client.{GetFileExtension()}");
+                    FileName = Path.Combine(meta.Configuration.ClientLocation, $"{c.Name}Client.{GetFileExtension()}");
                     break;
             }
         }

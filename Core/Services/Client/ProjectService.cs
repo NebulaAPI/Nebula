@@ -11,8 +11,11 @@ using Nebula.SDK.Plugin;
 using Nebula.SDK.Compiler;
 using Nebula.SDK.Renderers;
 using Nebula.SDK.Util;
+using Nebula.Core.Services.Client;
+using Nebula.SDK.Interfaces;
+using Nebula.Core.Factories;
 
-namespace Nebula.Core.Services
+namespace Nebula.Core.Services.Client
 {
     public class ProjectService
     {
@@ -142,34 +145,38 @@ namespace Nebula.Core.Services
             validator.Validate();
 
             var ts = new TemplateService(p, null);
+            var rs = new RegistryService();
+            var plugins = rs.LoadAllPlugins();
+            var languagePlugins = rs.SearchForType<ILanguagePlugin>(plugins);
+            var cf = new CompilerFactory(rs, languagePlugins);
 
-            foreach (var template in p.Templates)
-            {
-                var t = ts.GetTemplate(template) ?? throw new Exception("Could not find template data for template: " + template);
+            // foreach (var template in p.Templates)
+            // {
+            //     var t = ts.GetTemplate(template) ?? throw new Exception("Could not find template data for template: " + template);
                 
-                var templateMeta = ts.GetTemplateMeta(template);
+            //     var templateMeta = ts.GetTemplateMeta(template);
 
-                var templatePluginFileFolder = Path.Combine(p.TemplateDirectory, t.Name, templateMeta.PluginLocation.Trim(Path.DirectorySeparatorChar));
-                var pluginFiles = new List<string>();
-                FileUtil.GenerateFileList(templatePluginFileFolder, pluginFiles, ".cs", (f) => f.Replace(CurrentProject.SourceDirectory + Path.DirectorySeparatorChar, ""));
+            //     var templatePluginFileFolder = Path.Combine(p.TemplateDirectory, t.Name, templateMeta.PluginLocation.Trim(Path.DirectorySeparatorChar));
+            //     var pluginFiles = new List<string>();
+            //     FileUtil.GenerateFileList(templatePluginFileFolder, pluginFiles, ".cs", (f) => f.Replace(CurrentProject.SourceDirectory + Path.DirectorySeparatorChar, ""));
 
-                var pluginService = new PluginService("");
-                var renderPlugin = pluginService.GetPlugin<IRenderPlugin>();
-                var compilerPlugin = pluginService.GetPlugin<ICompilerPlugin>();
+            //     var pluginService = new PluginService("");
+            //     var renderPlugin = pluginService.GetPlugin<IRenderPlugin>();
+            //     var compilerPlugin = pluginService.GetPlugin<ICompilerPlugin>();
 
-                var compiler = CompilerFactory.Get(t.Language);
-                compiler.Init(p, projectNode, templateMeta, compilerPlugin);
-                var outputFiles = compiler.Compile();
-                var renderer = RendererFactory.Get(t.Language, compiler, renderPlugin);
+            //     var compiler = CompilerFactory.Get(t.Language);
+            //     compiler.Init(p, projectNode, templateMeta, compilerPlugin);
+            //     var outputFiles = compiler.Compile();
+            //     var renderer = RendererFactory.Get(t.Language, compiler, renderPlugin);
                 
-                var destinationDirectory = PrepareOutputDir(p, templateMeta);
-                renderer.Render(outputFiles, p, templateMeta);
-                foreach (var file in outputFiles)
-                {
-                    var outputFileName = Path.Combine(destinationDirectory, templateMeta.SourceFolder, file.FileName);
-                    File.WriteAllText(outputFileName, file.GetFileContent());
-                }
-            }
+            //     var destinationDirectory = PrepareOutputDir(p, templateMeta);
+            //     renderer.Render(outputFiles, p, templateMeta);
+            //     foreach (var file in outputFiles)
+            //     {
+            //         var outputFileName = Path.Combine(destinationDirectory, templateMeta.SourceFolder, file.FileName);
+            //         File.WriteAllText(outputFileName, file.GetFileContent());
+            //     }
+            // }
         }
 
         private string PrepareOutputDir(Project project, TemplateMeta templateMeta)

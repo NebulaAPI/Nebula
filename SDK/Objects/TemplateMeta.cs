@@ -3,26 +3,36 @@ using Newtonsoft.Json;
 
 namespace Nebula.SDK.Objects
 {
-    public class TemplateFile
-    {
-        public string OriginalName { get; set; }
-        public string NewName { get; set; }
-    }
-    
-    public class TemplateMeta
+    public class TemplateConfiguration
     {
         public string EntityLocation { get; set; }
         public string ClientLocation { get; set; }
         public string SourceFolder { get; set; }
-        public string TemplateLocation { get; set; }
+        public string ExtensionLocation { get; set; }
         public string PluginLocation { get; set; }
-        public List<TemplateFile> FilesToRename { get; set; }
-        [JsonIgnore] public string TemplatePath { get; set; }
-        [JsonIgnore] public LibraryTemplate TemplateData { get; set; }
+        public Dictionary<string, string> FilesToRename { get; set; }
 
-        public TemplateMeta()
+        public TemplateConfiguration()
         {
             SourceFolder = "";
         }
+    }
+
+    public class TemplateLanguagePlugin
+    {
+        public string Name { get; set; }
+        public string Version { get; set; }
+    }
+    
+    public class TemplateMeta
+    {
+        public string Name { get; set; }
+        public string Author { get; set; }
+        public string Description { get; set; }
+        public TemplateLanguagePlugin LanguagePlugin { get; set; }
+        public TemplateConfiguration Configuration { get; set; }
+        public string TemplateLocation { get; set; }
+        [JsonIgnore] public string TemplatePath { get; set; }
+        [JsonIgnore] public LibraryTemplate TemplateData { get; set; }
     }
 }

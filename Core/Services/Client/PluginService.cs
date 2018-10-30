@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Nebula.SDK.Plugin;
 
-namespace Nebula.Core.Services
+namespace Nebula.Core.Services.Client
 {
     /// <summary>
     /// This service is responsible for installing, compiling and loading plugins

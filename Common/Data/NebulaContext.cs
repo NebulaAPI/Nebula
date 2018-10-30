@@ -1,6 +1,5 @@
 using System;
 using Microsoft.EntityFrameworkCore;
-using Nebula.Common.Data.Models;
 using Nebula.SDK.Objects.Server;
 
 namespace Nebula.Common.Data
