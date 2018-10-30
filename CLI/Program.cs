@@ -12,6 +12,8 @@ using static System.Environment;
 using System.Collections.Generic;
 using Nebula.Core.Services.API;
 using CLI.Commands;
+using Nebula.Core.Services.Client;
+using Nebula.SDK.Compiler.Abstracts;
 
 namespace Nebula
 {
@@ -42,6 +44,9 @@ namespace Nebula
             // var client = new RegistryApiClient();
             // var plugin = client.GetPlugin("plugin-language-php");
             // Console.WriteLine(plugin.Name);
+            var rs = new RegistryService();
+            var plugins = rs.LoadAllPlugins();
+            var types = rs.SearchForType<AbstractCompiler>(plugins);
             
             CommandLineApplication.Execute<Nebula>(args);
         }
