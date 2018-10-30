@@ -56,13 +56,13 @@ namespace Nebula.SDK.Util
         {
             var filesInThisFolder = Directory
                 .GetFiles(folder)
-                .Select(f => replaceFunc(f) ?? f)//f.Replace(CurrentProject.SourceDirectory + Path.DirectorySeparatorChar, ""))
+                .Select(f => replaceFunc(f))//f.Replace(CurrentProject.SourceDirectory + Path.DirectorySeparatorChar, ""))
                 .Where(f => f.EndsWith(ext));
             allFiles.AddRange(filesInThisFolder);
             var folders = Directory.GetDirectories(folder);
             foreach (var f in folders)
             {
-                GenerateFileList(f, allFiles);
+                GenerateFileList(f, allFiles, ext, replaceFunc);
             }
         }
     }

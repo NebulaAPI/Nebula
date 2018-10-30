@@ -125,7 +125,7 @@ namespace Nebula.Core.Services
         {
             // first we need to build a list of files to be parsed, including their directory structure
             var files = new List<string>();
-            GenerateFileList(p.SourceDirectory, files);
+            FileUtil.GenerateFileList(p.SourceDirectory, files, ".neb", (f) => f.Replace(CurrentProject.SourceDirectory + Path.DirectorySeparatorChar, ""));
             TotalFiles = files.Count;
             BuildCount = 0.0f;
             BuildProgress = 0.0f;
@@ -151,7 +151,7 @@ namespace Nebula.Core.Services
 
                 var templatePluginFileFolder = Path.Combine(p.TemplateDirectory, t.Name, templateMeta.PluginLocation.Trim(Path.DirectorySeparatorChar));
                 var pluginFiles = new List<string>();
-                GenerateFileList(templatePluginFileFolder, pluginFiles, ".cs", (f) => f.Replace(CurrentProject.SourceDirectory + Path.DirectorySeparatorChar, ""));
+                FileUtil.GenerateFileList(templatePluginFileFolder, pluginFiles, ".cs", (f) => f.Replace(CurrentProject.SourceDirectory + Path.DirectorySeparatorChar, ""));
 
                 var pluginService = new PluginService("");
                 var renderPlugin = pluginService.GetPlugin<IRenderPlugin>();
