@@ -7,6 +7,6 @@ namespace Nebula.SDK.Objects.Client
     public class Plugin : BasePlugin
     {
         public List<PluginVersion> Versions { get; set; }
-        public List<PluginDependency> Dependencies { get; set; }
+        
     }
 }

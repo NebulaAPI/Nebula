@@ -2,7 +2,7 @@ using System;
 
 namespace Nebula.SDK.Objects.Shared
 {
-    public class PluginDependency : BaseDependency
+    public abstract class BasePluginVersion : BaseVersion
     {
         
     }

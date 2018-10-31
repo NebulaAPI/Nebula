@@ -1,10 +1,9 @@
 using System;
-using System.Collections.Generic;
-using Nebula.SDK.Objects.Shared;
+using Newtonsoft.Json;
 
-namespace Nebula.SDK.Objects.Server
+namespace Nebula.SDK.Objects.Shared
 {
-    public class Plugin
+    public class BaseRegistryObject
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
@@ -12,10 +11,8 @@ namespace Nebula.SDK.Objects.Server
         public string Description { get; set; }
         public DateTime LastUpdated { get; set; }
         public DateTime Published { get; set; }
-        public User UploadedBy { get; set; }
+        [JsonIgnore] public User UploadedBy { get; set; }
         public Guid UploadedById { get; set; }
         public string RepositoryUrl { get; set; }
-
-        public virtual ICollection<PluginVersion> Versions { get; set; }
     }
 }

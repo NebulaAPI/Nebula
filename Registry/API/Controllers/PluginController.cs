@@ -30,8 +30,8 @@ namespace API.Controllers
         public Plugin Get(string name)
         {
             return _nebulaContext.Plugins
-                .Include(p => p.Dependencies)
                 .Include(p => p.Versions)
+                    .ThenInclude(version => version.Dependencies)
                 .Include(p => p.UploadedBy)
                 .FirstOrDefault(p => p.Name == name);
         }
@@ -45,36 +45,12 @@ namespace API.Controllers
         [HttpPost]
         public Plugin Post([FromBody] string repoUrl)
         {
-            var meta = _registryService.ImportPlugin(repoUrl);
-            var versions = _registryService.GetPluginVersions(meta);
-            var newPlugin = new Plugin {
-                Name = meta.Name,
-                Author = meta.Author,
-                Description = meta.Description,
-                LastUpdated = DateTime.Now,
-                Verified = false,
-                Active = false,
-                RepositoryUrl = repoUrl,
-                UploadedBy = new User { Id = Guid.NewGuid() },
-                Dependencies = meta.Dependencies.Keys.Select(d => new PluginDependency {
-                    Id = Guid.NewGuid(),
-                    Name = d,
-                    VersionPattern = meta.Dependencies[d]
-                    }).ToArray(),
-                Versions = versions.Keys.Select(v => new PluginVersion {
-                    Id = Guid.NewGuid(),
-                    Version = v,
-                    CommitSha = versions[v],
-                    DateAdded = DateTime.Now
-                    }).ToArray()
-            };
+            var plugin = _registryService.ImportPlugin(repoUrl);
 
-            _nebulaContext.Plugins.Add(newPlugin);
+            _nebulaContext.Plugins.Add(plugin);
             _nebulaContext.SaveChanges();
 
-            _registryService.CleanUpTemp(meta.TempFolder);
-
-            return newPlugin;
+            return plugin;
         }
     }
 }

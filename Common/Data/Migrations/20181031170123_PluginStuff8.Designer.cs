@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Nebula.Common.Data;
 
 namespace Data.Migrations
 {
     [DbContext(typeof(NebulaContext))]
-    partial class NebulaContextModelSnapshot : ModelSnapshot
+    [Migration("20181031170123_PluginStuff8")]
+    partial class PluginStuff8
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -75,37 +77,10 @@ namespace Data.Migrations
                     b.ToTable("Templates");
                 });
 
-            modelBuilder.Entity("Nebula.SDK.Objects.Server.TemplateVersion", b =>
+            modelBuilder.Entity("Nebula.SDK.Objects.Shared.PluginDependency", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
-
-                    b.Property<bool>("Active");
-
-                    b.Property<string>("CommitSha");
-
-                    b.Property<DateTime>("DateAdded");
-
-                    b.Property<Guid?>("TemplateId");
-
-                    b.Property<bool>("Verified");
-
-                    b.Property<string>("Version");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TemplateId");
-
-                    b.ToTable("TemplateVersion");
-                });
-
-            modelBuilder.Entity("Nebula.SDK.Objects.Shared.BaseDependency", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("Discriminator")
-                        .IsRequired();
 
                     b.Property<string>("Name");
 
@@ -117,17 +92,13 @@ namespace Data.Migrations
 
                     b.HasIndex("PluginVersionId");
 
-                    b.ToTable("BaseDependency");
-
-                    b.HasDiscriminator<string>("Discriminator").HasValue("BaseDependency");
+                    b.ToTable("PluginDependency");
                 });
 
             modelBuilder.Entity("Nebula.SDK.Objects.Shared.PluginVersion", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
-
-                    b.Property<bool>("Active");
 
                     b.Property<string>("CommitSha");
 
@@ -146,6 +117,24 @@ namespace Data.Migrations
                     b.ToTable("PluginVersion");
                 });
 
+            modelBuilder.Entity("Nebula.SDK.Objects.Shared.TemplateDependency", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Name");
+
+                    b.Property<Guid?>("TemplateId");
+
+                    b.Property<string>("VersionPattern");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TemplateId");
+
+                    b.ToTable("TemplateDependency");
+                });
+
             modelBuilder.Entity("Nebula.SDK.Objects.Shared.TemplateLanguagePlugin", b =>
                 {
                     b.Property<Guid>("Id")
@@ -158,6 +147,26 @@ namespace Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("TemplateLanguagePlugin");
+                });
+
+            modelBuilder.Entity("Nebula.SDK.Objects.Shared.TemplateVersion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("CommitSha");
+
+                    b.Property<DateTime>("DateAdded");
+
+                    b.Property<Guid?>("TemplateId");
+
+                    b.Property<string>("Version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TemplateId");
+
+                    b.ToTable("TemplateVersion");
                 });
 
             modelBuilder.Entity("Nebula.SDK.Objects.Shared.User", b =>
@@ -184,23 +193,6 @@ namespace Data.Migrations
                     b.ToTable("User");
                 });
 
-            modelBuilder.Entity("Nebula.SDK.Objects.Shared.TemplateDependency", b =>
-                {
-                    b.HasBaseType("Nebula.SDK.Objects.Shared.BaseDependency");
-
-                    b.Property<Guid?>("TemplateId");
-
-                    b.Property<Guid?>("TemplateVersionId");
-
-                    b.HasIndex("TemplateId");
-
-                    b.HasIndex("TemplateVersionId");
-
-                    b.ToTable("TemplateDependency");
-
-                    b.HasDiscriminator().HasValue("TemplateDependency");
-                });
-
             modelBuilder.Entity("Nebula.SDK.Objects.Server.Plugin", b =>
                 {
                     b.HasOne("Nebula.SDK.Objects.Shared.User", "UploadedBy")
@@ -221,14 +213,7 @@ namespace Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("Nebula.SDK.Objects.Server.TemplateVersion", b =>
-                {
-                    b.HasOne("Nebula.SDK.Objects.Server.Template")
-                        .WithMany("Versions")
-                        .HasForeignKey("TemplateId");
-                });
-
-            modelBuilder.Entity("Nebula.SDK.Objects.Shared.BaseDependency", b =>
+            modelBuilder.Entity("Nebula.SDK.Objects.Shared.PluginDependency", b =>
                 {
                     b.HasOne("Nebula.SDK.Objects.Shared.PluginVersion")
                         .WithMany("Dependencies")
@@ -247,10 +232,13 @@ namespace Data.Migrations
                     b.HasOne("Nebula.SDK.Objects.Server.Template")
                         .WithMany("Dependencies")
                         .HasForeignKey("TemplateId");
+                });
 
-                    b.HasOne("Nebula.SDK.Objects.Server.TemplateVersion")
-                        .WithMany("Dependencies")
-                        .HasForeignKey("TemplateVersionId");
+            modelBuilder.Entity("Nebula.SDK.Objects.Shared.TemplateVersion", b =>
+                {
+                    b.HasOne("Nebula.SDK.Objects.Server.Template")
+                        .WithMany("Versions")
+                        .HasForeignKey("TemplateId");
                 });
 #pragma warning restore 612, 618
         }

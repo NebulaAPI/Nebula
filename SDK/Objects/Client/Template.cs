@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Nebula.SDK.Objects.Shared;
 
-namespace SDK.Objects.Client
+namespace Nebula.SDK.Objects.Client
 {
     public class Template : BaseTemplate
     {

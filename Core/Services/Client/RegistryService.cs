@@ -36,9 +36,19 @@ namespace Nebula.Core.Services.Client
         /// </summary>
         /// <param name="query">terms to search for</param>
         /// <returns>Plugin object</returns>
-        public List<Plugin> Search(string query)
+        public List<Plugin> SearchPlugins(string query)
         {
             return Client.SearchPlugins(query);
+        }
+
+        /// <summary>
+        /// Search for templates in official registry
+        /// </summary>
+        /// <param name="query">terms to search for</param>
+        /// <returns>Template object</returns>
+        public List<Template> SearchTemplates(string query)
+        {
+            return Client.SearchTemplates(query);
         }
 
         /// <summary>

@@ -34,11 +34,37 @@ namespace Nebula.Core.Services.API
             return response.Data;
         }
 
+        public List<Template> SearchTemplates(string query)
+        {
+            var req = new RestRequest("/template/search/{query}", Method.GET, DataFormat.Json);
+            req.AddUrlSegment("query", query);
+            var response = Client.Execute<List<Template>>(req);
+            if (response.ErrorException != null)
+            {
+                throw new Exception(response.ErrorException.Message);
+            }
+
+            return response.Data;
+        }
+
         public Plugin GetPlugin(string name)
         {
             var req = new RestRequest("/plugin/{name}", Method.GET, DataFormat.Json);
             req.AddUrlSegment("name", name);
             var response = Client.Execute<Plugin>(req);
+            if (response.ErrorException != null)
+            {
+                throw new Exception(response.ErrorException.Message);
+            }
+
+            return response.Data;
+        }
+
+        public Template GetTemplate(string name)
+        {
+            var req = new RestRequest("/template/{name}", Method.GET, DataFormat.Json);
+            req.AddUrlSegment("name", name);
+            var response = Client.Execute<Template>(req);
             if (response.ErrorException != null)
             {
                 throw new Exception(response.ErrorException.Message);

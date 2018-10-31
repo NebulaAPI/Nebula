@@ -18,21 +18,21 @@ namespace Nebula.SDK.Objects
         }
     }
 
-    public class TemplateLanguagePlugin
+    public class LanguagePlugin
     {
         public string Name { get; set; }
         public string Version { get; set; }
     }
     
-    public class TemplateMeta
+    public class TemplateMeta : MetaObject
     {
-        public string Name { get; set; }
         public string Author { get; set; }
         public string Description { get; set; }
-        public TemplateLanguagePlugin LanguagePlugin { get; set; }
+        public LanguagePlugin LanguagePlugin { get; set; }
         public TemplateConfiguration Configuration { get; set; }
         public string TemplateLocation { get; set; }
         [JsonIgnore] public string TemplatePath { get; set; }
         [JsonIgnore] public LibraryTemplate TemplateData { get; set; }
+        
     }
 }

@@ -17,7 +17,7 @@ namespace CLI.Commands.Plugin
             try
             {
                 var registryService = new RegistryService();
-                var results = registryService.Search(Query);
+                var results = registryService.SearchPlugins(Query);
                 var table = new ConsoleTable("Name", "Descsription");
             
                 foreach (var plugin in results)
