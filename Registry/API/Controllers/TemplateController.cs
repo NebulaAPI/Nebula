@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Nebula.Common.Data;
@@ -23,8 +24,15 @@ namespace API.Controllers
             _registryService = registryService;
             _nebulaContext = context;
             _registryService.Db = _nebulaContext;
+
+            var user = _nebulaContext.Users.FirstOrDefault(u => u.Username == User.Identity.Name);
+            if (user != null)
+            {
+                _registryService.User = user;
+            }
         }
 
+        [AllowAnonymous]
         [HttpGet("{name}")]
         public Template Get(string name)
         {
@@ -35,12 +43,14 @@ namespace API.Controllers
                 .FirstOrDefault(p => p.Name == name);
         }
 
+        [AllowAnonymous]
         [HttpGet("search/{query}")]
         public List<Template> Search(string query)
         {
             return _nebulaContext.Templates.Where(p => p.Name.Contains(query)).ToList();
         }
 
+        [Authorize]
         [HttpPost]
         public Template Post([FromBody] string repoUrl)
         {

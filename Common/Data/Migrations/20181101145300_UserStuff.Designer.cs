@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Nebula.Common.Data;
 
 namespace Data.Migrations
 {
     [DbContext(typeof(NebulaContext))]
-    partial class NebulaContextModelSnapshot : ModelSnapshot
+    [Migration("20181101145300_UserStuff")]
+    partial class UserStuff
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -97,28 +99,6 @@ namespace Data.Migrations
                     b.HasIndex("TemplateId");
 
                     b.ToTable("TemplateVersion");
-                });
-
-            modelBuilder.Entity("Nebula.SDK.Objects.Server.UserApiKey", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<bool>("Active");
-
-                    b.Property<DateTime>("Generated");
-
-                    b.Property<string>("PrivateKey");
-
-                    b.Property<string>("PublicKey");
-
-                    b.Property<Guid>("UserId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ApiKeys");
                 });
 
             modelBuilder.Entity("Nebula.SDK.Objects.Shared.BaseDependency", b =>
@@ -248,14 +228,6 @@ namespace Data.Migrations
                     b.HasOne("Nebula.SDK.Objects.Server.Template")
                         .WithMany("Versions")
                         .HasForeignKey("TemplateId");
-                });
-
-            modelBuilder.Entity("Nebula.SDK.Objects.Server.UserApiKey", b =>
-                {
-                    b.HasOne("Nebula.SDK.Objects.Shared.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("Nebula.SDK.Objects.Shared.BaseDependency", b =>

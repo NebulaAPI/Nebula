@@ -9,6 +9,7 @@ using Nebula.SDK.Objects.Server;
 using Nebula.SDK.Objects.Shared;
 using Nebula.Core.Services.Server;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 
 namespace API.Controllers
 {
@@ -24,8 +25,11 @@ namespace API.Controllers
         {
             _registryService = registryService;
             _nebulaContext = context;
+
+            
         }
         
+        [AllowAnonymous]
         [HttpGet("{name}")]
         public Plugin Get(string name)
         {
@@ -36,6 +40,7 @@ namespace API.Controllers
                 .FirstOrDefault(p => p.Name == name);
         }
 
+        [AllowAnonymous]
         [HttpGet("search/{query}")]
         public List<Plugin> Search(string query)
         {
@@ -43,8 +48,15 @@ namespace API.Controllers
         }
         
         [HttpPost]
+        [Authorize]
         public Plugin Post([FromBody] string repoUrl)
         {
+            var user = _nebulaContext.Users.FirstOrDefault(u => u.Id == Guid.Parse(User.Identity.Name));
+            if (user != null)
+            {
+                _registryService.User = user;
+            }
+            
             var plugin = _registryService.ImportPlugin(repoUrl);
 
             _nebulaContext.Plugins.Add(plugin);

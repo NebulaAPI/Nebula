@@ -17,6 +17,8 @@ namespace Nebula.Core.Services.Server
     public class RegistryService
     {
         public NebulaContext Db { get; set; }
+
+        public User User { get; set; }
         
         public Plugin ImportPlugin(string repoUrl)
         {
@@ -30,7 +32,8 @@ namespace Nebula.Core.Services.Server
                     Description = meta.Description,
                     LastUpdated = DateTime.Now,
                     Published = DateTime.Now,
-                    UploadedBy = new User {Id = Guid.NewGuid()},
+                    UploadedBy = User,
+                    UploadedById = User.Id,
                     RepositoryUrl = repoUrl
                 };
 
@@ -52,7 +55,7 @@ namespace Nebula.Core.Services.Server
                     Description = meta.Description,
                     LastUpdated = DateTime.Now,
                     Published = DateTime.Now,
-                    UploadedBy = new User {Id = Guid.NewGuid()},
+                    UploadedBy = User,
                     RepositoryUrl = repoUrl
                 };
 
