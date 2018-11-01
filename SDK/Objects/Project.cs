@@ -11,7 +11,7 @@ namespace Nebula.SDK.Objects
         public string Company { get; set; }
         public string Version { get; set; }
         public string Manifest { get; set; }
-        public List<string> Templates { get; set; }
+        public Dictionary<string, string> Templates { get; set; }
         [JsonIgnore]
         public string SourceDirectory { get; set; }
         [JsonIgnore]
@@ -25,7 +25,7 @@ namespace Nebula.SDK.Objects
 
         public Project()
         {
-            Templates = new List<string>();
+            Templates = new Dictionary<string, string>();
         }
 
         public string GetProperName()

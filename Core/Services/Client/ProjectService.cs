@@ -14,6 +14,7 @@ using Nebula.SDK.Util;
 using Nebula.Core.Services.Client;
 using Nebula.SDK.Interfaces;
 using Nebula.Core.Factories;
+using Nebula.SDK.Objects.Client;
 
 namespace Nebula.Core.Services.Client
 {
@@ -124,6 +125,12 @@ namespace Nebula.Core.Services.Client
             File.WriteAllText(projectFile, json);
         }
 
+        public void AddTemplate(Project project, Template template)
+        {
+            project.Templates.Add(template.Name, template.Versions.FirstOrDefault()?.Version); // FIXME: figure out the most recent version
+            SaveProject(project);
+        }
+
         public void BuildProject(Project p)
         {
             // first we need to build a list of files to be parsed, including their directory structure
@@ -144,7 +151,7 @@ namespace Nebula.Core.Services.Client
             var validator = new Validator(projectNode);
             validator.Validate();
 
-            var ts = new TemplateService(p, null);
+            var ts = new TemplateService(p);
             var rs = new RegistryService();
             var plugins = rs.LoadAllPlugins();
             var languagePlugins = rs.SearchForType<ILanguagePlugin>(plugins);
@@ -194,7 +201,7 @@ namespace Nebula.Core.Services.Client
             
             FileUtil.Copy(sourceTemplatePath, destTemplatePath);
 
-            var ts = new TemplateService(project, null);
+            var ts = new TemplateService(project);
             ts.CustomizeTemplate(destTemplatePath, templateMeta.TemplateData.Name);
             return destTemplatePath;
         }

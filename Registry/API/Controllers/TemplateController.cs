@@ -25,11 +25,7 @@ namespace API.Controllers
             _nebulaContext = context;
             _registryService.Db = _nebulaContext;
 
-            var user = _nebulaContext.Users.FirstOrDefault(u => u.Username == User.Identity.Name);
-            if (user != null)
-            {
-                _registryService.User = user;
-            }
+            
         }
 
         [AllowAnonymous]
@@ -54,6 +50,12 @@ namespace API.Controllers
         [HttpPost]
         public Template Post([FromBody] string repoUrl)
         {
+            var user = _nebulaContext.Users.FirstOrDefault(u => u.Username == User.Identity.Name);
+            if (user != null)
+            {
+                _registryService.User = user;
+            }
+            
             var template = _registryService.ImportTemplate(repoUrl);
 
             try

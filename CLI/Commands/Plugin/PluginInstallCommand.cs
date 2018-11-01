@@ -19,7 +19,7 @@ namespace CLI.Commands.Plugin
             try
             {
                 var registryService = new RegistryService();
-                registryService.Install(Name);
+                registryService.InstallPlugin(Name);
 
                 return 0;
             }

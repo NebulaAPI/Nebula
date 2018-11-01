@@ -12,7 +12,8 @@ namespace CLI.Commands
         Subcommand("update", typeof(TemplateUpdateCommand)),
         Subcommand("list", typeof(TemplateListCommand)),
         Subcommand("add", typeof(TemplateAddCommand)),
-        Subcommand("remove", typeof(TemplateRemoveCommand))
+        Subcommand("remove", typeof(TemplateRemoveCommand)),
+        Subcommand("search", typeof(TemplateSearchCommand))
     ]
     public class TemplateCommand
     {

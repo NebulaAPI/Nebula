@@ -5,6 +5,7 @@ using LibGit2Sharp;
 using Newtonsoft.Json;
 using Nebula.SDK.Objects;
 using Nebula.SDK.Util;
+using Nebula.SDK.Objects.Client;
 
 namespace Nebula.Core.Services.Client
 {
@@ -15,38 +16,52 @@ namespace Nebula.Core.Services.Client
         private Project CurrentProject { get; set; }
 
         private string ManifestFile { get; set; }
+
+        private RegistryService RegistryService { get; set; }
         
-        public TemplateService(Project project, string manifestRepo)
+        public TemplateService(Project project, RegistryService registryService = null)
         {
-            ManifestRepo = manifestRepo;
+            ManifestRepo = NebulaConfig.TemplateManifestRepo;
             CurrentProject = project;
-            ManifestFile = Path.Combine(CurrentProject.ManifestDirectory, "template-manifest.json");
+            ManifestFile = Path.Combine(NebulaConfig.TemplateDirectory, "template-manifest.json");
+            RegistryService = registryService ?? new RegistryService();
         }
 
-        public LibraryTemplate CreateTemplate(string name)
+        public Template InstallTemplate(string name)
         {
-            var meta = new TemplateMeta {
-
-            };
-
-            var template = new LibraryTemplate {
-
-            };
+            var manifestData = LoadLocalManifest();
+            var template = RegistryService.InstallTemplate(name);
+            manifestData.Templates.Add(template);
+            SaveLocalManifest(manifestData);
 
             return template;
         }
 
-        public void GetOrUpdateManifest()
-        {
-            Directory.Delete(CurrentProject.ManifestDirectory, true);
-            Repository.Clone(ManifestRepo, CurrentProject.ManifestDirectory);
-        }
-
-        public List<LibraryTemplate> GetTemplates()
+        public TemplateManifest LoadLocalManifest()
         {
             if (!File.Exists(ManifestFile))
             {
-                GetOrUpdateManifest();
+                CreateEmptyManifest();
+            }
+            return JsonConvert.DeserializeObject<TemplateManifest>(File.ReadAllText(ManifestFile));
+        }
+
+        public void SaveLocalManifest(TemplateManifest manifest)
+        {
+            File.WriteAllText(ManifestFile, JsonConvert.SerializeObject(manifest, Formatting.Indented));
+        }
+
+        public void CreateEmptyManifest()
+        {
+            var manifest = new TemplateManifest();
+            File.WriteAllText(ManifestFile, JsonConvert.SerializeObject(manifest, Formatting.Indented));
+        }
+
+        public List<Template> GetLocalTemplates()
+        {
+            if (!File.Exists(ManifestFile))
+            {
+                CreateEmptyManifest();
             }
 
             var manifestData = JsonConvert.DeserializeObject<TemplateManifest>(File.ReadAllText(ManifestFile));
@@ -55,50 +70,27 @@ namespace Nebula.Core.Services.Client
 
         public void RenderTemplateList()
         {
-            var templates = GetTemplates();
-            var table = new ConsoleTable("Name", "Language", "Framework", "Version", "Added");
+            var templates = GetLocalTemplates();
+            var table = new ConsoleTable("Name", "Description", "Added");
             
             foreach (var t in templates)
             {
-                var includedInProject = CurrentProject.Templates.Contains(t.Name);
-                table.AddRow(t.Name, t.Language, t.Framework, t.Version, includedInProject ? '\u2714': ' ');
+                var includedInProject = CurrentProject.Templates.Keys.Contains(t.Name);
+                table.AddRow(t.Name, t.Description, includedInProject ? '\u2714': ' ');
             }
             table.Write(Format.Minimal);
         }
 
-        public bool RemoveTemplateFromProject(string templateName)
+        public Template GetTemplate(string templateName)
         {
-            CurrentProject.Templates.Remove(templateName);
-            return true;
-        }
-
-        public bool AddTemplateToProject(LibraryTemplate template)
-        {
-            if (CurrentProject.Templates.Any(t => t == template.Name))
-            {
-                return false;
-            }
-            
-            // it is at this point that we should clone the template into the templates folder, and
-            // only add it to the project if that process is successful
-            var templatePath = Path.Combine(CurrentProject.TemplateDirectory, template.Name);
-            Repository.Clone(template.Repo, templatePath);
-            //CustomizeTemplate(template.Name);
-
-            CurrentProject.Templates.Add(template.Name);
-            return true;
-        }
-
-        public LibraryTemplate GetTemplate(string templateName)
-        {
-            return GetTemplates().FirstOrDefault(t => t.Name == templateName);
+            return GetLocalTemplates().FirstOrDefault(t => t.Name == templateName);
         }
 
         public TemplateMeta GetTemplateMeta(string templateName)
         {
-            var templates = GetTemplates();
+            var templates = GetLocalTemplates();
             var template = templates.FirstOrDefault(t => t.Name == templateName);
-            if (template != null && CurrentProject.Templates.Contains(templateName))
+            if (template != null && CurrentProject.Templates.Keys.Contains(templateName))
             {
                 var templatePath = Path.Combine(CurrentProject.TemplateDirectory, templateName);
                 if (!Directory.Exists(templatePath))

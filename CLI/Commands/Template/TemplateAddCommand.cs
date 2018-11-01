@@ -19,21 +19,28 @@ namespace CLI.Commands.Template
             {
                 var ps = new ProjectService();
                 var project = ps.LoadProject(Environment.CurrentDirectory);
-                var ts = new TemplateService(project, NebulaConfig.TemplateManifestRepo);
+                var rs = new RegistryService();
                 
-                var template = ts.GetTemplates().FirstOrDefault(t => t.Name == Name);
-                if (template != null)
-                {
-                    if (ts.AddTemplateToProject(template))
-                    {
-                        ps.SaveProject(project);
-                        return 0;
-                    }
+                // clone the template into the cache folder
+                var template = rs.InstallTemplate(Name);
+                ps.AddTemplate(project, template);
 
-                    throw new Exception("Template is already added to this project.");
-                }
+                return 0;
+                // var ts = new TemplateService(project);
+                
+                // var template = ts.GetTemplates().FirstOrDefault(t => t.Name == Name);
+                // if (template != null)
+                // {
+                //     if (ts.AddTemplateToProject(template))
+                //     {
+                //         ps.SaveProject(project);
+                //         return 0;
+                //     }
 
-                throw new Exception("Could not find template named: " + Name);
+                //     throw new Exception("Template is already added to this project.");
+                // }
+
+                // throw new Exception("Could not find template named: " + Name);
                 
             }
             catch (Exception e)

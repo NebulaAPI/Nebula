@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Nebula.SDK.Objects.Client;
 using Newtonsoft.Json;
 
 namespace Nebula.SDK.Objects
@@ -32,7 +33,7 @@ namespace Nebula.SDK.Objects
         public TemplateConfiguration Configuration { get; set; }
         public string TemplateLocation { get; set; }
         [JsonIgnore] public string TemplatePath { get; set; }
-        [JsonIgnore] public LibraryTemplate TemplateData { get; set; }
+        [JsonIgnore] public Template TemplateData { get; set; }
         
     }
 }

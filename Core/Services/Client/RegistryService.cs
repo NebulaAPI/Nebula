@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using LibGit2Sharp;
 using Nebula.Core.Services.API;
+using Nebula.SDK.Exceptions;
 using Nebula.SDK.Objects;
 using Nebula.SDK.Objects.Client;
 using Nebula.SDK.Util;
@@ -56,18 +57,28 @@ namespace Nebula.Core.Services.Client
         /// </summary>
         /// <param name="name">The plugin to retrieve</param>
         /// <returns>Plugin object</returns>
-        public Plugin Get(string name)
+        public Plugin GetPlugin(string name)
         {
             return Client.GetPlugin(name);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public Template GetTemplate(string name)
+        {
+            return Client.GetTemplate(name);
         }
 
         /// <summary>
         /// Locally install the specified plugin from the official registry
         /// </summary>
         /// <param name="name">The plugin to install</param>
-        public void Install(string name)
+        public void InstallPlugin(string name)
         {
-            var plugin = Get(name);
+            var plugin = GetPlugin(name);
             if (plugin == null)
             {
                 throw new Exception("Could not find plugin: " + name);
@@ -81,6 +92,29 @@ namespace Nebula.Core.Services.Client
 
             var pluginDir = Path.Combine(NebulaConfig.PluginDirectory, plugin.Name);
             Repository.Clone(plugin.RepositoryUrl, pluginDir);
+        }
+
+        /// <summary>
+        /// Locally install the specified plugin from the official registry
+        /// </summary>
+        /// <param name="name">The plugin to install</param>
+        public Template InstallTemplate(string name)
+        {
+            var template = GetTemplate(name);
+            if (template == null)
+            {
+                throw new Exception("Could not find tenmplate: " + name);
+            }
+
+            var installedTemplates = GetInstalledTemplates();
+            if (installedTemplates.Any(p => p.Name == name))
+            {
+                return template;
+            }
+
+            var templateDir = Path.Combine(NebulaConfig.TemplateDirectory, template.Name);
+            Repository.Clone(template.RepositoryUrl, templateDir);
+            return template;
         }
 
         /// <summary>
@@ -172,6 +206,21 @@ namespace Nebula.Core.Services.Client
             {
                 var metaFile = Path.Combine(dir, "nebula-meta.json");
                 result.Add(JsonConvert.DeserializeObject<PluginMeta>(File.ReadAllText(metaFile)));
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Gets meta data for currently installed plugins
+        /// </summary>
+        /// <returns>List of PluginMeta objects</returns>
+        public List<TemplateMeta> GetInstalledTemplates()
+        {
+            var result = new List<TemplateMeta>();
+            foreach (var dir in Directory.GetDirectories(NebulaConfig.TemplateDirectory))
+            {
+                var metaFile = Path.Combine(dir, "nebula-meta.json");
+                result.Add(JsonConvert.DeserializeObject<TemplateMeta>(File.ReadAllText(metaFile)));
             }
             return result;
         }

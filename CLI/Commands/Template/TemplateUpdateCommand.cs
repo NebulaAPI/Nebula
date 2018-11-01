@@ -16,7 +16,7 @@ namespace CLI.Commands.Template
             {
                 var ps = new ProjectService();
                 var project = ps.LoadProject(Environment.CurrentDirectory);
-                var ts = new TemplateService(project, NebulaConfig.TemplateManifestRepo);
+                var ts = new TemplateService(project);
                 
                 ts.GetOrUpdateManifest();
                 ts.RenderTemplateList();
