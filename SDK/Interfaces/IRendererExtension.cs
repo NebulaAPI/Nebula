@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Nebula.SDK.Plugin
 {
-    public interface IRenderPlugin
+    public interface IRendererExtension
     {
         List<string> RenderClientImports();
 

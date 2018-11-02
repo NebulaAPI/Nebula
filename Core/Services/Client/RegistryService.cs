@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using LibGit2Sharp;
 using Nebula.Core.Services.API;
@@ -16,94 +17,149 @@ namespace Nebula.Core.Services.Client
     /// <summary>
     /// Methods for working with the official plugin registry from client applications
     /// </summary>
-    public class RegistryService
+    public interface IRegistryService
     {
-        private RegistryApiClient Client { get; set; }
-        private CompilationService CompilationService { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="compilationService"></param>
-        public RegistryService(RegistryApiClient client = null, CompilationService compilationService = null)
-        {
-            Client = client ?? new RegistryApiClient();
-            CompilationService = compilationService ?? new CompilationService();
-        }
-
         /// <summary>
         /// Search for plugins in official registry
         /// </summary>
         /// <param name="query">terms to search for</param>
         /// <returns>Plugin object</returns>
-        public List<Plugin> SearchPlugins(string query)
-        {
-            return Client.SearchPlugins(query);
-        }
+        List<Plugin> SearchPlugins(string query);
 
         /// <summary>
         /// Search for templates in official registry
         /// </summary>
         /// <param name="query">terms to search for</param>
         /// <returns>Template object</returns>
-        public List<Template> SearchTemplates(string query)
-        {
-            return Client.SearchTemplates(query);
-        }
+        List<Template> SearchTemplates(string query);
 
         /// <summary>
         /// Get the details for a specific plugin from the official registry
         /// </summary>
         /// <param name="name">The plugin to retrieve</param>
         /// <returns>Plugin object</returns>
-        public Plugin GetPlugin(string name)
-        {
-            return Client.GetPlugin(name);
-        }
+        Plugin GetPlugin(string name);
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public Template GetTemplate(string name)
-        {
-            return Client.GetTemplate(name);
-        }
+        Template GetTemplate(string name);
 
         /// <summary>
         /// Locally install the specified plugin from the official registry
         /// </summary>
         /// <param name="name">The plugin to install</param>
+        void InstallPlugin(string name);
+
+        /// <summary>
+        /// Locally install the specified plugin from the official registry
+        /// </summary>
+        /// <param name="name">The plugin to install</param>
+        Template InstallTemplate(string name);
+
+        /// <summary>
+        /// Compile the specified plugin installed from the official registry.
+        /// Performed automatically upon install.
+        /// </summary>
+        /// <param name="name">Plugin to compile</param>
+        /// <returns>Fully loaded Assembly reference</returns>
+        Assembly Compile(string name);
+
+        /// <summary>
+        /// Load the compiled dll files for all currently installed plugins
+        /// </summary>
+        /// <returns>List of Assembly objects</returns>
+        List<Assembly> LoadAllPlugins();
+
+        /// <summary>
+        /// Search the provided list of assemblies for the specified type.
+        /// List of assemblies can come from LoadAllPlugins()
+        /// </summary>
+        /// <param name="assemblies">Output from LoadAllPlugins()</param>
+        /// <typeparam name="T">The type to search for</typeparam>
+        /// <returns>List of instanced objects of the specified type</returns>
+        Dictionary<Assembly, List<T>> SearchForType<T>(List<Assembly> assemblies);
+
+        /// <summary>
+        /// Gets meta data for currently installed plugins
+        /// </summary>
+        /// <returns>List of PluginMeta objects</returns>
+        List<PluginMeta> GetInstalledPlugins(Func<PluginMeta, bool> predicate = null);
+
+        /// <summary>
+        /// Gets meta data for currently installed plugins
+        /// </summary>
+        /// <returns>List of PluginMeta objects</returns>
+        List<TemplateMeta> GetInstalledTemplates(Func<TemplateMeta, bool> predicate = null);
+    }
+    
+    public class RegistryService : IRegistryService
+    {
+        private RegistryApiClient _client;
+        private ICompilationService _compilationService;
+        private IFileUtil _fileUtil;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="compilationService"></param>
+        public RegistryService(
+            RegistryApiClient client,
+            ICompilationService compilationService,
+            IFileUtil fileUtil
+        ) {
+            _client = client;
+            _compilationService = compilationService;
+            _fileUtil = fileUtil;
+        }
+        
+        public List<Plugin> SearchPlugins(string query)
+        {
+            return _client.SearchPlugins(query);
+        }
+        
+        public List<Template> SearchTemplates(string query)
+        {
+            return _client.SearchTemplates(query);
+        }
+        
+        public Plugin GetPlugin(string name)
+        {
+            return _client.GetPlugin(name);
+        }
+        
+        public Template GetTemplate(string name)
+        {
+            return _client.GetTemplate(name);
+        }
+        
         public void InstallPlugin(string name)
         {
             var plugin = GetPlugin(name);
             if (plugin == null)
             {
-                throw new Exception("Could not find plugin: " + name);
+                throw new PluginNotFoundException(name);
             }
 
             var installedPlugins = GetInstalledPlugins();
             if (installedPlugins.Any(p => p.Name == name))
             {
-                throw new Exception($"{name} already installed");
+                throw new AlreadyInstalledException(name);
             }
 
             var pluginDir = Path.Combine(NebulaConfig.PluginDirectory, plugin.Name);
             Repository.Clone(plugin.RepositoryUrl, pluginDir);
         }
-
-        /// <summary>
-        /// Locally install the specified plugin from the official registry
-        /// </summary>
-        /// <param name="name">The plugin to install</param>
+        
         public Template InstallTemplate(string name)
         {
             var template = GetTemplate(name);
             if (template == null)
             {
-                throw new Exception("Could not find tenmplate: " + name);
+                throw new TemplateNotFoundException(name);
             }
 
             var installedTemplates = GetInstalledTemplates();
@@ -114,34 +170,27 @@ namespace Nebula.Core.Services.Client
 
             var templateDir = Path.Combine(NebulaConfig.TemplateDirectory, template.Name);
             Repository.Clone(template.RepositoryUrl, templateDir);
+
+            InstallPlugin(template.LanguagePlugin.Name);
+
             return template;
         }
-
-        /// <summary>
-        /// Compile the specified plugin installed from the official registry.
-        /// Performed automatically upon install.
-        /// </summary>
-        /// <param name="name">Plugin to compile</param>
-        /// <returns>Fully loaded Assembly reference</returns>
+        
         public Assembly Compile(string name)
         {
             var meta = GetInstalledPlugins().FirstOrDefault(p => p.Name == name);
             if (meta == null)
             {
-                throw new Exception($"Plugin {name} not installed.");
+                throw new PluginNotFoundException(name);
             }
 
             var pluginDir = Path.Combine(NebulaConfig.PluginDirectory, meta.Name);
             var pluginFiles = new List<string>();
             var assemblyFile = Path.Combine(pluginDir, $"{meta.Name}.dll");
-            FileUtil.GenerateFileList(pluginDir, pluginFiles, ".cs", (f) => f);
-            return CompilationService.CompileLocal(meta.Name, assemblyFile, pluginFiles.ToArray());
+            _fileUtil.GenerateFileList(pluginDir, pluginFiles, ".cs", (f) => f);
+            return _compilationService.CompileLocal(meta.Name, assemblyFile, pluginFiles.ToArray());
         }
-
-        /// <summary>
-        /// Load the compiled dll files for all currently installed plugins
-        /// </summary>
-        /// <returns>List of Assembly objects</returns>
+        
         public List<Assembly> LoadAllPlugins()
         {
             var output = new List<Assembly>();
@@ -149,7 +198,7 @@ namespace Nebula.Core.Services.Client
             foreach (var plugin in plugins)
             {   
                 var dllFile = Path.Combine(NebulaConfig.PluginDirectory, plugin.Name, $"{plugin.Name}.dll");
-                if (!File.Exists(dllFile))
+                if (!_fileUtil.FileExists(dllFile))
                 {
                     output.Add(Compile(plugin.Name));
                     continue;
@@ -159,14 +208,7 @@ namespace Nebula.Core.Services.Client
 
             return output;
         }
-
-        /// <summary>
-        /// Search the provided list of assemblies for the specified type.
-        /// List of assemblies can come from LoadAllPlugins()
-        /// </summary>
-        /// <param name="assemblies">Output from LoadAllPlugins()</param>
-        /// <typeparam name="T">The type to search for</typeparam>
-        /// <returns>List of instanced objects of the specified type</returns>
+        
         public Dictionary<Assembly, List<T>> SearchForType<T>(List<Assembly> assemblies)
         {
             var result = new Dictionary<Assembly, List<T>>();
@@ -194,34 +236,38 @@ namespace Nebula.Core.Services.Client
                 
             return result;
         }
-
-        /// <summary>
-        /// Gets meta data for currently installed plugins
-        /// </summary>
-        /// <returns>List of PluginMeta objects</returns>
-        public List<PluginMeta> GetInstalledPlugins()
+        
+        public List<PluginMeta> GetInstalledPlugins(Func<PluginMeta, bool> predicate = null)
         {
             var result = new List<PluginMeta>();
-            foreach (var dir in Directory.GetDirectories(NebulaConfig.PluginDirectory))
+            foreach (var dir in _fileUtil.GetDirectories(NebulaConfig.PluginDirectory))
             {
                 var metaFile = Path.Combine(dir, "nebula-meta.json");
-                result.Add(JsonConvert.DeserializeObject<PluginMeta>(File.ReadAllText(metaFile)));
+                result.Add(JsonConvert.DeserializeObject<PluginMeta>(_fileUtil.FileReadAllText(metaFile)));
             }
+
+            if (predicate != null)
+            {
+                return result.Where(predicate).ToList();
+            }
+
             return result;
         }
-
-        /// <summary>
-        /// Gets meta data for currently installed plugins
-        /// </summary>
-        /// <returns>List of PluginMeta objects</returns>
-        public List<TemplateMeta> GetInstalledTemplates()
+        
+        public List<TemplateMeta> GetInstalledTemplates(Func<TemplateMeta, bool> predicate = null)
         {
             var result = new List<TemplateMeta>();
-            foreach (var dir in Directory.GetDirectories(NebulaConfig.TemplateDirectory))
+            foreach (var dir in _fileUtil.GetDirectories(NebulaConfig.TemplateDirectory))
             {
                 var metaFile = Path.Combine(dir, "nebula-meta.json");
-                result.Add(JsonConvert.DeserializeObject<TemplateMeta>(File.ReadAllText(metaFile)));
+                result.Add(JsonConvert.DeserializeObject<TemplateMeta>(_fileUtil.FileReadAllText(metaFile)));
             }
+
+            if (predicate != null)
+            {
+                return result.Where(predicate).ToList();
+            }
+
             return result;
         }
     }

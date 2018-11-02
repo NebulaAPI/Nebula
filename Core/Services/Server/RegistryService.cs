@@ -17,8 +17,14 @@ namespace Nebula.Core.Services.Server
     public class RegistryService
     {
         public NebulaContext Db { get; set; }
-
         public User User { get; set; }
+
+        private IFileUtil _fileUtil;
+
+        public RegistryService(IFileUtil fileUtil)
+        {
+            _fileUtil = fileUtil;
+        }
         
         public Plugin ImportPlugin(string repoUrl)
         {
@@ -114,11 +120,11 @@ namespace Nebula.Core.Services.Server
         private T GetMeta<T>(string tmpPath) where T : MetaObject
         {
             var metaFile = Path.Combine(tmpPath, "nebula-meta.json");
-            if (!File.Exists(metaFile))
+            if (!_fileUtil.FileExists(metaFile))
             {
                 throw new System.Exception($"Repository does not contain nebula-meta.json: {metaFile}");
             }
-            var meta = JsonConvert.DeserializeObject<T>(File.ReadAllText(metaFile));
+            var meta = JsonConvert.DeserializeObject<T>(_fileUtil.FileReadAllText(metaFile));
             if (meta.Dependencies == null)
             {
                 meta.Dependencies = new Dictionary<string, string>();
@@ -196,7 +202,7 @@ namespace Nebula.Core.Services.Server
 
         public void CleanUpTemp(string tmpPath)
         {
-            Directory.Delete(tmpPath, true);
+            _fileUtil.DirectoryDelete(tmpPath, true);
         }
     }
 }

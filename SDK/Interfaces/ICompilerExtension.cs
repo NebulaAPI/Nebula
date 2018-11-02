@@ -4,7 +4,7 @@ using Nebula.SDK.Objects;
 
 namespace Nebula.SDK.Plugin
 {
-    public interface ICompilerPlugin
+    public interface ICompilerExtension
     {
         List<RootObject> GetTopOfClassExtra(ApiConfig config);
 

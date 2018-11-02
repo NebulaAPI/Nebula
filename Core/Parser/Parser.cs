@@ -7,21 +7,22 @@ namespace Nebula.Core.Parser
 {
     public abstract class Parser
     {
-        protected Tokenizer Tokenizer { get; set; }
+        protected Tokenizer _tokenizer;
+
         protected Parser(Tokenizer tokenizer)
         {
-            Tokenizer = tokenizer;
+            _tokenizer = tokenizer;
         }
 
         protected Parser(string inputFile)
         {
             var finfo = new FileInfo(inputFile);
-            Tokenizer = new Tokenizer(new InputStream(finfo));
+            _tokenizer = new Tokenizer(new InputStream(finfo));
         }
 
         protected Token IsString(string str)
         {
-            var token = Tokenizer.Peek();
+            var token = _tokenizer.Peek();
             if (token == null)
             {
                 return null;
@@ -32,7 +33,7 @@ namespace Nebula.Core.Parser
 
         protected bool IsPunc(char? c)
         {
-            var token = Tokenizer.Peek();
+            var token = _tokenizer.Peek();
             if (token == null)
             {
                 return false;
@@ -42,7 +43,7 @@ namespace Nebula.Core.Parser
 
         protected Token IsKeyword(string kw)
         {
-            var token = Tokenizer.Peek();
+            var token = _tokenizer.Peek();
             if (token == null)
             {
                 return null;
@@ -52,7 +53,7 @@ namespace Nebula.Core.Parser
 
         protected Token IsOp(string op)
         {
-            var token = Tokenizer.Peek();
+            var token = _tokenizer.Peek();
             if (token == null)
             {
                 return null;
@@ -68,11 +69,11 @@ namespace Nebula.Core.Parser
         {
             if (IsPunc(c))
             {
-                Tokenizer.Next();
+                _tokenizer.Next();
             }
             else
             {
-                Tokenizer.Error("Expecting punctuation: " + c);
+                _tokenizer.Error("Expecting punctuation: " + c);
             }
         }
 
@@ -80,11 +81,11 @@ namespace Nebula.Core.Parser
         {
             if (IsKeyword(kw) != null)
             {
-                Tokenizer.Next();
+                _tokenizer.Next();
             }
             else
             {
-                Tokenizer.Error("Expecting keyword: " + kw);
+                _tokenizer.Error("Expecting keyword: " + kw);
             }
         }
 
@@ -92,17 +93,17 @@ namespace Nebula.Core.Parser
         {
             if (IsOp(op) != null)
             {
-                Tokenizer.Next();
+                _tokenizer.Next();
             }
             else
             {
-                Tokenizer.Error("Expecting operator: " + op);
+                _tokenizer.Error("Expecting operator: " + op);
             }
         }
 
         protected void Unexpected()
         {
-            Tokenizer.Error("Unexpected token: " + Tokenizer.Peek());
+            _tokenizer.Error("Unexpected token: " + _tokenizer.Peek());
         }
 
         protected List<T> Delimited<T>(char start, char stop, char separator, Func<T> parser) where T : AstNode
@@ -111,7 +112,7 @@ namespace Nebula.Core.Parser
             var first = true;
 
             SkipPunc(start);
-            while (!Tokenizer.Eof())
+            while (!_tokenizer.Eof())
             {
                 if (IsPunc(stop))
                 {

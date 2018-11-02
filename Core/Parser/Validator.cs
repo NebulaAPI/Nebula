@@ -5,6 +5,11 @@ using Nebula.SDK.Objects;
 
 namespace Nebula.Core.Parser
 {
+    public interface IProjectValidator
+    {
+        void Validate(ProjectNode projectNode);
+    }
+    
     /// <summary>
     /// This class is responsible for checking that specified data types exist
     /// in the project, either because they are the default included types, or
@@ -12,40 +17,36 @@ namespace Nebula.Core.Parser
     /// 
     /// First we have to find all the entity nodes and collect those types
     /// </summary>
-    public class Validator
+    public class ProjectValidator : IProjectValidator
     {
-        private ProjectNode Node { get; set; }
+        private List<EntityNode> _customEntities;
+        private List<string> _builtInTypes;
+        private List<string> _allTypes;
 
-        private List<EntityNode> CustomEntities { get; set; }
-
-        private List<string> BuiltInTypes { get; set; }
-
-        private List<string> AllTypes { get; set; }
-        public Validator(ProjectNode projectNode)
+        public ProjectValidator()
         {
-            Node = projectNode;
-            BuiltInTypes = new List<string> {
+            _builtInTypes = new List<string> {
                 "string", "boolean", "integer", "float", "double", "char", "array", "datetime"
             };
-            AllTypes = new List<string>(BuiltInTypes);
+            _allTypes = new List<string>(_builtInTypes);
         }
 
-        public void Validate()
+        public void Validate(ProjectNode projectNode)
         {
-            CollectCustomEntities();
-            ValidateDataNodes();
-            ValidateApiConfig();
-            ValidateFunctionDocs();
+            CollectCustomEntities(projectNode);
+            ValidateDataNodes(projectNode);
+            ValidateApiConfig(projectNode);
+            ValidateFunctionDocs(projectNode);
         }
 
         private bool IsValidType(string typeName)
         {
-            return AllTypes.Contains(typeName);
+            return _allTypes.Contains(typeName);
         }
 
-        private void ValidateFunctionDocs()
+        private void ValidateFunctionDocs(ProjectNode projectNode)
         {
-            var funcs = Node.SearchByType<FunctionNode>();
+            var funcs = projectNode.SearchByType<FunctionNode>();
             foreach (var f in funcs)
             {
                 if (!f.Docs.Any(d => d.Key == "description"))
@@ -68,9 +69,9 @@ namespace Nebula.Core.Parser
             }
         }
 
-        private void ValidateApiConfig()
+        private void ValidateApiConfig(ProjectNode projectNode)
         {
-            var apiConfigNodes = Node.SearchByType<ConfigNode>();
+            var apiConfigNodes = projectNode.SearchByType<ConfigNode>();
             var realConfigProps = typeof(ApiConfig).GetProperties();
             foreach (var config in apiConfigNodes)
             {
@@ -84,10 +85,10 @@ namespace Nebula.Core.Parser
             }
         }
 
-        private void ValidateDataNodes()
+        private void ValidateDataNodes(ProjectNode projectNode)
         {
             Action<string> throwInvalid = (dt) => throw new System.Exception("Unknown data type " + dt);
-            var dataNodes = Node.SearchByType<DataTypeNode>();
+            var dataNodes = projectNode.SearchByType<DataTypeNode>();
             foreach (var dataNode in dataNodes)
             {
                 if (IsValidType(dataNode.Name))
@@ -111,14 +112,14 @@ namespace Nebula.Core.Parser
             }
         }
 
-        private void CollectCustomEntities()
+        private void CollectCustomEntities(ProjectNode projectNode)
         {
-            CustomEntities = new List<EntityNode>();
-            foreach (var module in Node.Modules)
+            _customEntities = new List<EntityNode>();
+            foreach (var module in projectNode.Modules)
             {
-                CustomEntities.AddRange(module.Elements.AsEnumerable().OfType<EntityNode>());
+                _customEntities.AddRange(module.Elements.AsEnumerable().OfType<EntityNode>());
             }
-            AllTypes.AddRange(CustomEntities.Select(e => e.Name));
+            _allTypes.AddRange(_customEntities.Select(e => e.Name));
         }
     }
 }

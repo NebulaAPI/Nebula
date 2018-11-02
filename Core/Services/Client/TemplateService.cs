@@ -9,28 +9,46 @@ using Nebula.SDK.Objects.Client;
 
 namespace Nebula.Core.Services.Client
 {
-    public class TemplateService
+    public interface ITemplateService
     {
-        private string ManifestRepo { get; set; }
-
-        private Project CurrentProject { get; set; }
-
-        private string ManifestFile { get; set; }
-
-        private RegistryService RegistryService { get; set; }
+        Template InstallTemplate(string name);
+        TemplateManifest LoadLocalManifest();
+        void SaveLocalManifest(TemplateManifest manifest);
+        void CreateEmptyManifest();
+        List<Template> GetLocalTemplates();
+        void RenderTemplateList(Project project);
+        Template GetTemplate(string templateName);
+        TemplateMeta GetTemplateMeta(Project project, string templateName);
+        void CustomizeTemplate(Project project, string templatePath, string templateName);
+    }
+    
+    public class TemplateService : ITemplateService
+    {
+        private string _manifestRepo;
+        private string _manifestFile;
+        private IRegistryService _registryService;
+        private ICompilationService _compilationService;
+        private IFileUtil _fileUtil;
+        private ConsoleTable _consoleTable;
         
-        public TemplateService(Project project, RegistryService registryService = null)
-        {
-            ManifestRepo = NebulaConfig.TemplateManifestRepo;
-            CurrentProject = project;
-            ManifestFile = Path.Combine(NebulaConfig.TemplateDirectory, "template-manifest.json");
-            RegistryService = registryService ?? new RegistryService();
+        public TemplateService(
+            IRegistryService registryService,
+            ICompilationService compilationService,
+            IFileUtil fileUtil,
+            ConsoleTable consoleTable
+        ) {
+            _manifestRepo = NebulaConfig.TemplateManifestRepo;
+            _manifestFile = Path.Combine(NebulaConfig.TemplateDirectory, "template-manifest.json");
+            _registryService = registryService;
+            _compilationService = compilationService;
+            _fileUtil = fileUtil;
+            _consoleTable = consoleTable;
         }
 
         public Template InstallTemplate(string name)
         {
             var manifestData = LoadLocalManifest();
-            var template = RegistryService.InstallTemplate(name);
+            var template = _registryService.InstallTemplate(name);
             manifestData.Templates.Add(template);
             SaveLocalManifest(manifestData);
 
@@ -39,46 +57,47 @@ namespace Nebula.Core.Services.Client
 
         public TemplateManifest LoadLocalManifest()
         {
-            if (!File.Exists(ManifestFile))
+            if (!_fileUtil.FileExists(_manifestFile))
             {
                 CreateEmptyManifest();
             }
-            return JsonConvert.DeserializeObject<TemplateManifest>(File.ReadAllText(ManifestFile));
+            return JsonConvert.DeserializeObject<TemplateManifest>(_fileUtil.FileReadAllText(_manifestFile));
         }
 
         public void SaveLocalManifest(TemplateManifest manifest)
         {
-            File.WriteAllText(ManifestFile, JsonConvert.SerializeObject(manifest, Formatting.Indented));
+            _fileUtil.FileWriteAllText(_manifestFile, JsonConvert.SerializeObject(manifest, Formatting.Indented));
         }
 
         public void CreateEmptyManifest()
         {
             var manifest = new TemplateManifest();
-            File.WriteAllText(ManifestFile, JsonConvert.SerializeObject(manifest, Formatting.Indented));
+            _fileUtil.FileWriteAllText(_manifestFile, JsonConvert.SerializeObject(manifest, Formatting.Indented));
         }
 
         public List<Template> GetLocalTemplates()
         {
-            if (!File.Exists(ManifestFile))
+            if (!_fileUtil.FileExists(_manifestFile))
             {
                 CreateEmptyManifest();
             }
 
-            var manifestData = JsonConvert.DeserializeObject<TemplateManifest>(File.ReadAllText(ManifestFile));
+            var manifestData = JsonConvert.DeserializeObject<TemplateManifest>(_fileUtil.FileReadAllText(_manifestFile));
             return manifestData.Templates;
         }
 
-        public void RenderTemplateList()
+        public void RenderTemplateList(Project project)
         {
             var templates = GetLocalTemplates();
-            var table = new ConsoleTable("Name", "Description", "Added");
+            //var table = new ConsoleTable("Name", "Description", "Added");
+            _consoleTable.AddColumn(new string[] { "Name", "Description", "Added"});
             
             foreach (var t in templates)
             {
-                var includedInProject = CurrentProject.Templates.Keys.Contains(t.Name);
-                table.AddRow(t.Name, t.Description, includedInProject ? '\u2714': ' ');
+                var includedInProject = project.Templates.Keys.Contains(t.Name);
+                _consoleTable.AddRow(t.Name, t.Description, includedInProject ? '\u2714': ' ');
             }
-            table.Write(Format.Minimal);
+            _consoleTable.Write(Format.Minimal);
         }
 
         public Template GetTemplate(string templateName)
@@ -86,23 +105,23 @@ namespace Nebula.Core.Services.Client
             return GetLocalTemplates().FirstOrDefault(t => t.Name == templateName);
         }
 
-        public TemplateMeta GetTemplateMeta(string templateName)
+        public TemplateMeta GetTemplateMeta(Project project, string templateName)
         {
             var templates = GetLocalTemplates();
             var template = templates.FirstOrDefault(t => t.Name == templateName);
-            if (template != null && CurrentProject.Templates.Keys.Contains(templateName))
+            if (template != null && project.Templates.Keys.Contains(templateName))
             {
-                var templatePath = Path.Combine(CurrentProject.TemplateDirectory, templateName);
-                if (!Directory.Exists(templatePath))
+                var templatePath = Path.Combine(project.TemplateDirectory, templateName);
+                if (!_fileUtil.DirectoryExists(templatePath))
                 {
                     throw new System.Exception("Could not find template directory: " + templatePath);
                 }
                 var templateConfigFile = Path.Combine(templatePath, "nebula-meta.json");
-                if (!File.Exists(templateConfigFile))
+                if (!_fileUtil.FileExists(templateConfigFile))
                 {
                     throw new System.Exception("Could not find template meta file: " + templateConfigFile);
                 }
-                var templateMeta = JsonConvert.DeserializeObject<TemplateMeta>(File.ReadAllText(templateConfigFile));
+                var templateMeta = JsonConvert.DeserializeObject<TemplateMeta>(_fileUtil.FileReadAllText(templateConfigFile));
                 if (templateMeta == null)
                 {
                     throw new System.Exception("Error reading template meta file: " + templateConfigFile);
@@ -115,27 +134,27 @@ namespace Nebula.Core.Services.Client
             return null;
         }
 
-        public void CustomizeTemplate(string templatePath, string templateName)
+        public void CustomizeTemplate(Project project, string templatePath, string templateName)
         {
-            var templateMeta = GetTemplateMeta(templateName);
+            var templateMeta = GetTemplateMeta(project, templateName);
             foreach (var file in templateMeta.Configuration.FilesToRename.Keys)
             {
                 var fileToUpdate = Path.Combine(templatePath, file);
-                if (File.Exists(fileToUpdate))
+                if (_fileUtil.FileExists(fileToUpdate))
                 {
-                    var newFileName = templateMeta.Configuration.FilesToRename[file].Replace("%%NAME%%", CurrentProject.Name);
-                    File.Move(fileToUpdate, Path.Combine(templatePath, newFileName));
+                    var newFileName = templateMeta.Configuration.FilesToRename[file].Replace("%%NAME%%", project.Name);
+                    _fileUtil.FileMove(fileToUpdate, Path.Combine(templatePath, newFileName));
                 }
             }
 
-            foreach (var f in Directory.GetFiles(templatePath))
+            foreach (var f in _fileUtil.DirectoryGetFiles(templatePath))
             {
-                var fileContent = File.ReadAllText(f);
-                File.WriteAllText(f, 
+                var fileContent = _fileUtil.FileReadAllText(f);
+                _fileUtil.FileWriteAllText(f, 
                     fileContent
-                        .Replace("%%NAME%%", CurrentProject.Name)
-                        .Replace("%%VERSION%%", CurrentProject.Version)
-                        .Replace("%%PROPERNAME%%", CurrentProject.GetProperName())
+                        .Replace("%%NAME%%", project.Name)
+                        .Replace("%%VERSION%%", project.Version)
+                        .Replace("%%PROPERNAME%%", project.GetProperName())
                 );
             }
         }

@@ -9,6 +9,15 @@ namespace CLI.Commands.Plugin
     [Command("search", Description = "Searches for the specified query")]
     public class PluginSearchCommand
     {
+        private IRegistryService _registryService;
+        private ConsoleTable _consoleTable;
+        
+        public PluginSearchCommand(IRegistryService registryService, ConsoleTable consoleTable)
+        {
+            _registryService = registryService;
+            _consoleTable = consoleTable;
+        }
+        
         [Required(ErrorMessage = "You must specify a search term")]
         [Argument(0, Description = "The term(s) to search for")]
         public string Query { get; }
@@ -16,15 +25,14 @@ namespace CLI.Commands.Plugin
         {
             try
             {
-                var registryService = new RegistryService();
-                var results = registryService.SearchPlugins(Query);
-                var table = new ConsoleTable("Name", "Descsription");
+                var results = _registryService.SearchPlugins(Query);
+                _consoleTable.AddColumn(new string[] { "Name", "Description"});
             
                 foreach (var plugin in results)
                 {
-                    table.AddRow(plugin.Name, plugin.Description);
+                    _consoleTable.AddRow(plugin.Name, plugin.Description);
                 }
-                table.Write(Format.Minimal);
+                _consoleTable.Write(Format.Minimal);
                 
                 return 0;
             }

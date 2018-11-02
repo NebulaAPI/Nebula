@@ -6,14 +6,28 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Nebula.SDK.Plugin;
+using Nebula.SDK.Util;
 
 namespace Nebula.Core.Services.Client
 {
+    public interface ICompilationService
+    {
+        Assembly CompileInMemory(string name, params string[] files);
+        Assembly CompileLocal(string name, string outputFile, params string[] files);
+    }
+    
     /// <summary>
     /// Class to handle generating a local or in-memory assembly
     /// </summary>
-    public class CompilationService
+    public class CompilationService : ICompilationService
     {
+        private IFileUtil _fileUtil;
+
+        public CompilationService(IFileUtil fileUtil)
+        {
+            _fileUtil = fileUtil;
+        }
+        
         public Assembly CompileInMemory(string name, params string[] files)
         {
             var compilation = GenerateCompilation(name, files);
@@ -34,7 +48,7 @@ namespace Nebula.Core.Services.Client
         {
             var compilation = GenerateCompilation(name, files);
 
-            var fs = File.Create(outputFile);
+            var fs = _fileUtil.FileCreate(outputFile);
             var result = compilation.Emit(fs);
             fs.Close();
             if (result.Success) {
@@ -48,7 +62,7 @@ namespace Nebula.Core.Services.Client
         private Compilation GenerateCompilation(string assemblyName, params string[] files)
         {
             var sourceLanguage = new CSharpLanguage();
-            var syntaxTrees = files.Select(s => sourceLanguage.ParseText(File.ReadAllText(s), SourceCodeKind.Regular));
+            var syntaxTrees = files.Select(s => sourceLanguage.ParseText(_fileUtil.FileReadAllText(s), SourceCodeKind.Regular));
 
             return sourceLanguage
                 .CreateLibraryCompilation(assemblyName: assemblyName, enableOptimisations: false)
@@ -66,7 +80,7 @@ namespace Nebula.Core.Services.Client
         {
             private readonly List<PortableExecutableReference> _references = new List<PortableExecutableReference> {
                 MetadataReference.CreateFromFile(typeof(Binder).GetTypeInfo().Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(IRenderPlugin).GetTypeInfo().Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(IRendererExtension).GetTypeInfo().Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(IEnumerable<string>).GetTypeInfo().Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(Enumerable).GetTypeInfo().Assembly.Location),

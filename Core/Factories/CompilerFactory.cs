@@ -10,18 +10,21 @@ using System;
 
 namespace Nebula.Core.Factories
 {
+    public interface ICompilerFactory
+    {
+        AbstractCompiler Get(string language, string languagePlugin);
+    }
+    
     /// <summary>
     /// 
     /// </summary>
-    public class CompilerFactory
+    public class CompilerFactory : ICompilerFactory
     {
-        private RegistryService _registryService;
         private Dictionary<Assembly, List<ILanguagePlugin>> _languagePlugins;
         
-        public CompilerFactory(RegistryService registryService, Dictionary<Assembly, List<ILanguagePlugin>> languagePlugins)
+        public CompilerFactory(IRegistryService registryService)
         {
-            _registryService = registryService;
-            _languagePlugins = languagePlugins;
+            _languagePlugins = registryService.SearchForType<ILanguagePlugin>(registryService.LoadAllPlugins());
         }
         
         /// <summary>

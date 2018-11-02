@@ -19,6 +19,7 @@ using Microsoft.IdentityModel.Tokens;
 using Nebula.Common.Data;
 using Nebula.Core.Services.Server;
 using Nebula.SDK.Objects;
+using Nebula.SDK.Util;
 
 namespace API
 {
@@ -36,6 +37,7 @@ namespace API
         {
             services.AddCors();
             services.AddScoped<RegistryService, RegistryService>();
+            services.AddSingleton<IFileUtil, FileUtil>();
             services.AddDbContext<NebulaContext>();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddAutoMapper();

@@ -14,7 +14,7 @@ namespace Nebula.SDK.Renderers
 {
     public class CSharpRenderer : AbstractRenderer
     {
-        public CSharpRenderer(AbstractCompiler compiler, IRenderPlugin renderPlugin) : base(compiler, renderPlugin)
+        public CSharpRenderer(AbstractCompiler compiler, IRendererExtension rendererExtension) : base(compiler, rendererExtension)
         {
         }
 
@@ -64,14 +64,14 @@ namespace Nebula.SDK.Renderers
             var args = string.Join(", ", function.Arguments.Select(a => RenderAbstractVariableDefinition(a)));
             var method = GetHttpMethod(function.Node.Method);
             var fname = function.Name.ToProperCase().ToPascalCase();
-            var prefix = ActiveConfig.Prefix;
+            var prefix = _activeConfig.Prefix;
             var url = function.Node.Url;
 
             WriteIndented($"{visibility} {rt} {fname}({args})");
             WriteIndented("{");
-            IndentLevel++;
+            _indentLevel++;
             WriteIndented(
-                RenderPlugin.RenderAbstractFunction(
+                _rendererExtension.RenderAbstractFunction(
                     url,
                     prefix,
                     rt,
@@ -79,16 +79,16 @@ namespace Nebula.SDK.Renderers
                     function.Node.Args.Select(a => a.Name).ToList()
                 )
             );
-            IndentLevel--;
+            _indentLevel--;
             WriteIndented("}");
         }
 
         protected override void RenderAbstractNamespace(AbstractNamespace ns)
         {
-            CurrentOutput.AddRange(ns.Imports.Select(i => $"using {i};"));
-            CurrentOutput.AddRange(RenderPlugin.RenderClientImports().Select(i => $"using {i};"));
-            CurrentOutput.Add($"namespace {ns.Name}");
-            CurrentOutput.Add("{");
+            _currentOutput.AddRange(ns.Imports.Select(i => $"using {i};"));
+            _currentOutput.AddRange(_rendererExtension.RenderClientImports().Select(i => $"using {i};"));
+            _currentOutput.Add($"namespace {ns.Name}");
+            _currentOutput.Add("{");
         }
 
         protected override void RenderAbstractProperty(AbstractProperty<EntityNode> prop)
@@ -107,33 +107,33 @@ namespace Nebula.SDK.Renderers
 
         protected override void RenderApiClass(AbstractClass<ApiNode> ac)
         {
-            ActiveConfig = ac.Config;
+            _activeConfig = ac.Config;
             RenderNode(ac.Namespace);
-            IndentLevel++;
+            _indentLevel++;
             WriteIndented($"public class {ac.Name}Client");
             WriteIndented("{");
-            IndentLevel++;
+            _indentLevel++;
             RenderNodes<RootObject>(ac.TopOfClassExtra);
             RenderNodes<BaseProperty>(ac.Properties);
             RenderNode(ac.Constructor);
             RenderNodes<AbstractFunction>(ac.Functions);
-            IndentLevel--;
+            _indentLevel--;
             WriteIndented("}");
-            IndentLevel--;
+            _indentLevel--;
             WriteIndented("}");
         }
 
         protected override void RenderEntityClass(AbstractClass<EntityNode> ac)
         {
             RenderNode(ac.Namespace);
-            IndentLevel++;
+            _indentLevel++;
             WriteIndented($"public class {ac.Name}");
             WriteIndented("{");
-            IndentLevel++;
+            _indentLevel++;
             RenderNodes<BaseProperty>(ac.Properties);
-            IndentLevel--;
+            _indentLevel--;
             WriteIndented("}");
-            IndentLevel--;
+            _indentLevel--;
             WriteIndented("}");
         }
 
@@ -146,11 +146,11 @@ namespace Nebula.SDK.Renderers
             }
             WriteIndented($"{genericClass.AccessModifier.ToString().ToLower()} class {genericClass.Name} {inherits}");
             WriteIndented("{");
-            IndentLevel++;
+            _indentLevel++;
             RenderGenericProperties(genericClass.Properties);
             RenderGenericConstructor(genericClass.Constructor);
             RenderGenericFunctions(genericClass.Functions);
-            IndentLevel--;
+            _indentLevel--;
             WriteIndented("}");
         }
 
@@ -163,9 +163,9 @@ namespace Nebula.SDK.Renderers
             var args = string.Join(", ", genericConstructor.Arguments.Select(a => RenderGenericVariableDefinition(a)));
             WriteIndented($"{genericConstructor.AccessModifier.ToString().ToLower()} {genericConstructor.Name}({args})");
             WriteIndented("{");
-            IndentLevel++;
+            _indentLevel++;
             WriteIndented(genericConstructor.Body);
-            IndentLevel--;
+            _indentLevel--;
             WriteIndented("}");
         }
 
@@ -177,9 +177,9 @@ namespace Nebula.SDK.Renderers
             var args = string.Join(", ", genericFunction.Arguments.Select(a => RenderGenericVariableDefinition(a)));
             WriteIndented($"{visibility} {rt} {name}({args})");
             WriteIndented("{");
-            IndentLevel++;
+            _indentLevel++;
             WriteIndented(genericFunction.Body);
-            IndentLevel--;
+            _indentLevel--;
             WriteIndented("}");
         }
 
@@ -197,9 +197,9 @@ namespace Nebula.SDK.Renderers
         {
             WriteIndented("try");
             WriteIndented("{");
-            IndentLevel++;
+            _indentLevel++;
             WriteIndented(tryCatch.Body);
-            IndentLevel--;
+            _indentLevel--;
             WriteIndented("}");
             foreach (var catchBlock in tryCatch.CatchExceptions.Keys)
             {

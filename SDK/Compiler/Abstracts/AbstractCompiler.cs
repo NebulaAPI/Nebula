@@ -17,16 +17,16 @@ namespace Nebula.SDK.Compiler.Abstracts
 
         public Dictionary<ApiNode, ApiConfig> ApiConfig { get; set; }
 
-        public ICompilerPlugin CompilerPlugin { get; set; }
+        public ICompilerExtension CompilerExtension { get; set; }
 
         public abstract List<OutputFile> Compile();
 
-        public void Init(Project project, ProjectNode projectNode, TemplateMeta meta, ICompilerPlugin compilerPlugin)
+        public void Init(Project project, ProjectNode projectNode, TemplateMeta meta, ICompilerExtension compilerExtension)
         {
             Project = project;
             ProjectNode = projectNode;
             TemplateMeta = meta;
-            CompilerPlugin = compilerPlugin;
+            CompilerExtension = compilerExtension;
             ApiConfig = new Dictionary<ApiNode, ApiConfig>();
             BuildApiConfigs();
         }

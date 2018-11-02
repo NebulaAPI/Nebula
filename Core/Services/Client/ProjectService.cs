@@ -18,19 +18,51 @@ using Nebula.SDK.Objects.Client;
 
 namespace Nebula.Core.Services.Client
 {
-    public class ProjectService
+    public interface IProjectService
     {
-        private Project CurrentProject { get; set; }
-        private double BuildProgress { get; set; }
-        private double BuildCount { get; set; }
-        private double TotalFiles { get; set; }
-        
         /// <summary>
         /// Creates a new project
         /// </summary>
         /// <param name="name"></param>
         /// <param name="location"></param>
         /// <returns></returns>
+        Project CreateProject(string name, string location);
+        Project LoadProject(string location);
+        void SaveProject(Project project);
+        void AddTemplate(Project project, Template template);
+        void BuildProject(Project p);
+    }
+    
+    public class ProjectService : IProjectService
+    {
+        private Project _currentProject;
+        private double _buildProgress;
+        private double _buildCount;
+        private double _totalFiles;
+
+        private IRegistryService _registryService;
+        private ITemplateService _templateService;
+        private IFileUtil _fileUtil;
+        private IGitService _gitService;
+        private ICompilerFactory _compilerFactory;
+        private IProjectValidator _projectValidator;
+        
+        public ProjectService(
+            IRegistryService registryService,
+            ITemplateService templateService,
+            IFileUtil fileUtil,
+            IGitService gitService,
+            ICompilerFactory compilerFactory,
+            IProjectValidator projectValidator
+        ) {
+            _registryService = registryService;
+            _templateService = templateService;
+            _fileUtil = fileUtil;
+            _gitService = gitService;
+            _compilerFactory = compilerFactory;
+            _projectValidator = projectValidator;
+        }
+        
         public Project CreateProject(string name, string location)
         {
             var p = new Project 
@@ -43,9 +75,9 @@ namespace Nebula.Core.Services.Client
             var repoPath = Path.Combine(location, name);
 
             // TODO: make this path a config setting
-            Repository.Clone(NebulaConfig.ProjectSkeletonRepo, repoPath);
-            Directory.Delete(Path.Combine(repoPath, ".git"), true);
-            Repository.Init(repoPath);
+            _gitService.Clone(NebulaConfig.ProjectSkeletonRepo, repoPath);
+            _fileUtil.DirectoryDelete(Path.Combine(repoPath, ".git"), true);
+            _gitService.Init(repoPath);
             UpdateProjectConfig(p, repoPath);
 
             return p;
@@ -68,7 +100,7 @@ namespace Nebula.Core.Services.Client
             };
             
             var projectFile = Path.Combine(projectPath, "nebula.json");
-            var lines = File.ReadLines(projectFile);
+            var lines = _fileUtil.FileReadLines(projectFile);
             var regex = new Regex("%%(.*)%%");
             var outputLines = new List<string>();
             foreach (var line in lines)
@@ -94,27 +126,28 @@ namespace Nebula.Core.Services.Client
                     outputLines.Add(line);
                 }
             }
-            File.WriteAllLines(projectFile, outputLines);
+
+            _fileUtil.FileWriteAllLines(projectFile, outputLines);
         }
 
         public Project LoadProject(string location)
         {
             var projectFile = Path.Combine(location, "nebula.json");
-            if (!File.Exists(projectFile))
+            if (!_fileUtil.FileExists(projectFile))
             {
                 throw new Exception("Could not find nebula.json in current directory");
             }
-            var project = JsonConvert.DeserializeObject<Project>(File.ReadAllText(projectFile));
+            var project = JsonConvert.DeserializeObject<Project>(_fileUtil.FileReadAllText(projectFile));
             project.SourceDirectory = Path.Combine(location, "src");
             project.TemplateDirectory = Path.Combine(location, "templates");
             project.OutputDirectory = Path.Combine(location, "out");
             project.ManifestDirectory = Path.Combine(location, "manifest");
             project.ProjectDirectory = location;
-            if (!Directory.Exists(project.SourceDirectory))
+            if (!_fileUtil.DirectoryExists(project.SourceDirectory))
             {
                 throw new Exception("Could not find src directory within project structure");
             }
-            CurrentProject = project;
+            _currentProject = project;
             return project;
         }
 
@@ -122,7 +155,7 @@ namespace Nebula.Core.Services.Client
         {
             var projectFile = Path.Combine(project.ProjectDirectory, "nebula.json");
             var json = JsonConvert.SerializeObject(project);
-            File.WriteAllText(projectFile, json);
+            _fileUtil.FileWriteAllText(projectFile, json);
         }
 
         public void AddTemplate(Project project, Template template)
@@ -135,27 +168,22 @@ namespace Nebula.Core.Services.Client
         {
             // first we need to build a list of files to be parsed, including their directory structure
             var files = new List<string>();
-            FileUtil.GenerateFileList(p.SourceDirectory, files, ".neb", (f) => f.Replace(CurrentProject.SourceDirectory + Path.DirectorySeparatorChar, ""));
-            TotalFiles = files.Count;
-            BuildCount = 0.0f;
-            BuildProgress = 0.0f;
+            _fileUtil.GenerateFileList(p.SourceDirectory, files, ".neb", (f) => f.Replace(_currentProject.SourceDirectory + Path.DirectorySeparatorChar, ""));
+            _totalFiles = files.Count;
+            _buildCount = 0.0f;
+            _buildProgress = 0.0f;
             var modules = new List<ModuleNode>();
 
-            if (TotalFiles == 0)
+            if (_totalFiles == 0)
             {
                 throw new Exception("No .neb files found. Nothing to build.");
             }
             
             // Build and validate the AST for the entire project
             var projectNode = new ProjectNode(files.Select(f => BuildModule(f)).ToList());
-            var validator = new Validator(projectNode);
-            validator.Validate();
+            _projectValidator.Validate(projectNode);
 
-            var ts = new TemplateService(p);
-            var rs = new RegistryService();
-            var plugins = rs.LoadAllPlugins();
-            var languagePlugins = rs.SearchForType<ILanguagePlugin>(plugins);
-            var cf = new CompilerFactory(rs, languagePlugins);
+            //var cf = new CompilerFactory(_registryService);
 
             // foreach (var template in p.Templates)
             // {
@@ -194,26 +222,27 @@ namespace Nebula.Core.Services.Client
             var sourceTemplatePath = Path.Combine(project.TemplateDirectory, templateName, templateMeta.TemplateLocation.Trim(Path.DirectorySeparatorChar));
             var destTemplatePath = Path.Combine(project.OutputDirectory, $"{project.Name}-{templateName}");
 
-            if (Directory.Exists(destTemplatePath))
+            if (_fileUtil.DirectoryExists(destTemplatePath))
             {
-                Directory.Delete(destTemplatePath, true);
+                _fileUtil.DirectoryDelete(destTemplatePath, true);
             }
             
-            FileUtil.Copy(sourceTemplatePath, destTemplatePath);
+            _fileUtil.Copy(sourceTemplatePath, destTemplatePath);
 
-            var ts = new TemplateService(project);
-            ts.CustomizeTemplate(destTemplatePath, templateMeta.TemplateData.Name);
+            _templateService.CustomizeTemplate(project, destTemplatePath, templateMeta.TemplateData.Name);
+
             return destTemplatePath;
         }
 
         private ModuleNode BuildModule(string inputFile)
         {
-            BuildCount++;
-            BuildProgress = Math.Floor((BuildCount / TotalFiles) * 100);
-            Console.WriteLine($"[{BuildCount}/{TotalFiles} ({BuildProgress}%)] Processing {inputFile}");
+            _buildCount++;
+            _buildProgress = Math.Floor((_buildCount / _totalFiles) * 100);
+            Console.WriteLine($"[{_buildCount}/{_totalFiles} ({_buildProgress}%)] Processing {inputFile}");
             var moduleName = inputFile.Replace(Path.DirectorySeparatorChar, '.').Replace(".neb", "");
-            var absoluteFile = Path.Combine(CurrentProject.SourceDirectory, inputFile);
+            var absoluteFile = Path.Combine(_currentProject.SourceDirectory, inputFile);
             var parser = new NebulaParser(absoluteFile);
+
             return parser.Parse(moduleName);
         }
     }

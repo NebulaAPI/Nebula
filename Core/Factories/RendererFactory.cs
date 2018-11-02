@@ -6,7 +6,7 @@ namespace Nebula.Core.Factories
 {
     public class RendererFactory
     {
-        public static AbstractRenderer Get(string language, AbstractCompiler compiler, IRenderPlugin renderPlugin)
+        public static AbstractRenderer Get(string language, AbstractCompiler compiler, IRendererExtension rendererExtension)
         {
             switch(language.ToLower())
             {

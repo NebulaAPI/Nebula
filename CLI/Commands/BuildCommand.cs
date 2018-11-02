@@ -7,14 +7,20 @@ namespace CLI.Commands
     [Command("build", Description = "Build the client libraries")]
     public class BuildCommand
     {
+        private IProjectService _projectService;
+
+        public BuildCommand(IProjectService projectService)
+        {
+            _projectService = projectService;
+        }
+        
         private int OnExecute(IConsole console)
         {
-            var ps = new ProjectService();
             try
             {
-                var project = ps.LoadProject(Environment.CurrentDirectory);
+                var project = _projectService.LoadProject(Environment.CurrentDirectory);
                 console.WriteLine($"Building {project.Name}...");
-                ps.BuildProject(project);
+                _projectService.BuildProject(project);
                 console.WriteLine("Build completed successfully.");
                 return 0;
             }

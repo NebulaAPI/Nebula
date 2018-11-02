@@ -11,6 +11,13 @@ namespace CLI.Commands.Plugin
     [Command("install", Description = "Install the specified plugin")]
     public class PluginInstallCommand
     {
+        private IRegistryService _registryService;
+        
+        public PluginInstallCommand(IRegistryService registryService)
+        {
+            _registryService = registryService;
+        }
+        
         [Required(ErrorMessage = "You must specify a plugin to install")]
         [Argument(0, Description = "The name of the plugin to install")]
         public string Name { get; }
@@ -18,8 +25,7 @@ namespace CLI.Commands.Plugin
         {
             try
             {
-                var registryService = new RegistryService();
-                registryService.InstallPlugin(Name);
+                _registryService.InstallPlugin(Name);
 
                 return 0;
             }

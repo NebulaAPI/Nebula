@@ -13,6 +13,11 @@ namespace Nebula.SDK.Util
 
         public ConsoleTableOptions Options { get; protected set; }
 
+        public ConsoleTable()
+            :this(new ConsoleTableOptions { Columns = new List<string>()})
+        {
+        }
+        
         public ConsoleTable(params string[] columns)
             :this(new ConsoleTableOptions { Columns = new List<string>(columns) })
         {          

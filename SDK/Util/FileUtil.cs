@@ -5,14 +5,32 @@ using System.Linq;
 
 namespace Nebula.SDK.Util
 {
-    public class FileUtil
+    public interface IFileUtil
+    {
+        void Copy(string sourceDirectory, string targetDirectory);
+        void CopyAll(DirectoryInfo source, DirectoryInfo target);
+        void GenerateFileList(string folder, List<string> allFiles, string ext = ".neb", Func<string, string> replaceFunc = null);
+        bool DirectoryExists(string directory);
+        void DirectoryDelete(string directory, bool recursive = false);
+        string[] DirectoryGetFiles(string directory);
+        IEnumerable<string> FileReadLines(string filePath);
+        string FileReadAllText(string filePath);
+        void FileWriteAllLines(string filePath, IEnumerable<string> lines);
+        bool FileExists(string filePath);
+        void FileWriteAllText(string filePath, string content);
+        void FileMove(string source, string dest);
+        FileStream FileCreate(string filePath);
+        string[] GetDirectories(string directory);
+    }
+    
+    public class FileUtil : IFileUtil
     {
         /// <summary>
         /// Copy one directory to another
         /// </summary>
         /// <param name="sourceDirectory"></param>
         /// <param name="targetDirectory"></param>
-        public static void Copy(string sourceDirectory, string targetDirectory)
+        public void Copy(string sourceDirectory, string targetDirectory)
         {
             var diSource = new DirectoryInfo(sourceDirectory);
             var diTarget = new DirectoryInfo(targetDirectory);
@@ -26,7 +44,7 @@ namespace Nebula.SDK.Util
         /// </summary>
         /// <param name="source"></param>
         /// <param name="target"></param>
-        public static void CopyAll(DirectoryInfo source, DirectoryInfo target)
+        public void CopyAll(DirectoryInfo source, DirectoryInfo target)
         {
             Directory.CreateDirectory(target.FullName);
 
@@ -45,6 +63,56 @@ namespace Nebula.SDK.Util
             }
         }
 
+        public void DirectoryDelete(string directory, bool recursive = false)
+        {
+            Directory.Delete(directory, recursive);
+        }
+
+        public bool DirectoryExists(string directory)
+        {
+            return Directory.Exists(directory);
+        }
+
+        public string[] DirectoryGetFiles(string directory)
+        {
+            return Directory.GetFiles(directory);
+        }
+
+        public FileStream FileCreate(string filePath)
+        {
+            return File.Create(filePath);
+        }
+
+        public bool FileExists(string filePath)
+        {
+            return File.Exists(filePath);
+        }
+
+        public void FileMove(string source, string dest)
+        {
+            File.Move(source, dest);
+        }
+
+        public string FileReadAllText(string filePath)
+        {
+            return File.ReadAllText(filePath);
+        }
+
+        public IEnumerable<string> FileReadLines(string filePath)
+        {
+            return File.ReadAllLines(filePath);
+        }
+
+        public void FileWriteAllLines(string filePath, IEnumerable<string> lines)
+        {
+            File.WriteAllLines(filePath, lines);
+        }
+
+        public void FileWriteAllText(string filePath, string content)
+        {
+            File.WriteAllText(filePath, content);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -52,7 +120,7 @@ namespace Nebula.SDK.Util
         /// <param name="allFiles"></param>
         /// <param name="ext"></param>
         /// <param name="replaceFunc"></param>
-        public static void GenerateFileList(string folder, List<string> allFiles, string ext = ".neb", Func<string, string> replaceFunc = null)
+        public void GenerateFileList(string folder, List<string> allFiles, string ext = ".neb", Func<string, string> replaceFunc = null)
         {
             var filesInThisFolder = Directory
                 .GetFiles(folder)
@@ -64,6 +132,11 @@ namespace Nebula.SDK.Util
             {
                 GenerateFileList(f, allFiles, ext, replaceFunc);
             }
+        }
+
+        public string[] GetDirectories(string directory)
+        {
+            return Directory.GetDirectories(directory);
         }
     }
 }

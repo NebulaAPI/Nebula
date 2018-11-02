@@ -18,14 +18,14 @@ namespace Nebula.Core.Services.API
         {
             var req = new RestRequest("/plugin", Method.POST, DataFormat.Json);
             req.AddBody(repoUrl);
-            Client.Execute(req);
+            _client.Execute(req);
         }
 
         public List<Plugin> SearchPlugins(string query)
         {
             var req = new RestRequest("/plugin/search/{query}", Method.GET, DataFormat.Json);
             req.AddUrlSegment("query", query);
-            var response = Client.Execute<List<Plugin>>(req);
+            var response = _client.Execute<List<Plugin>>(req);
             if (response.ErrorException != null)
             {
                 throw new Exception(response.ErrorException.Message);
@@ -38,7 +38,7 @@ namespace Nebula.Core.Services.API
         {
             var req = new RestRequest("/template/search/{query}", Method.GET, DataFormat.Json);
             req.AddUrlSegment("query", query);
-            var response = Client.Execute<List<Template>>(req);
+            var response = _client.Execute<List<Template>>(req);
             if (response.ErrorException != null)
             {
                 throw new Exception(response.ErrorException.Message);
@@ -51,7 +51,7 @@ namespace Nebula.Core.Services.API
         {
             var req = new RestRequest("/plugin/{name}", Method.GET, DataFormat.Json);
             req.AddUrlSegment("name", name);
-            var response = Client.Execute<Plugin>(req);
+            var response = _client.Execute<Plugin>(req);
             if (response.ErrorException != null)
             {
                 throw new Exception(response.ErrorException.Message);
@@ -64,7 +64,7 @@ namespace Nebula.Core.Services.API
         {
             var req = new RestRequest("/template/{name}", Method.GET, DataFormat.Json);
             req.AddUrlSegment("name", name);
-            var response = Client.Execute<Template>(req);
+            var response = _client.Execute<Template>(req);
             if (response.ErrorException != null)
             {
                 throw new Exception(response.ErrorException.Message);

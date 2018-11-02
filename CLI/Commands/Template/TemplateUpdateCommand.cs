@@ -8,18 +8,25 @@ namespace CLI.Commands.Template
     [Command("update", Description = "Update template manifest")]
     public class TemplateUpdateCommand
     {
+        private IProjectService _projectService;
+        private ITemplateService _templateService;
+
+        public TemplateUpdateCommand(IProjectService projectService, ITemplateService templateService)
+        {
+            _projectService = projectService;
+            _templateService = templateService;
+        }
+        
         private int OnExecute(IConsole console)
         {
             console.WriteLine("Updating templates");
             console.WriteLine();
             try
             {
-                var ps = new ProjectService();
-                var project = ps.LoadProject(Environment.CurrentDirectory);
-                var ts = new TemplateService(project);
+                var project = _projectService.LoadProject(Environment.CurrentDirectory);
                 
-                ts.GetOrUpdateManifest();
-                ts.RenderTemplateList();
+                _templateService.CreateEmptyManifest();
+                _templateService.RenderTemplateList(project);
                 return 0;
             }
             catch (Exception e)

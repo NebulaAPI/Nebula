@@ -10,6 +10,15 @@ namespace CLI.Commands.Template
     [Command("add", Description = "Adds the specified template to the project")]
     public class TemplateAddCommand
     {
+        private IProjectService _projectService;
+        private IRegistryService _registryService;
+
+        public TemplateAddCommand(IProjectService projectService, IRegistryService registryService)
+        {
+            _projectService = projectService;
+            _registryService = registryService;
+        }
+        
         [Required(ErrorMessage = "You must specify the template name")]
         [Argument(0, Description = "The name of the template to add")]
         public string Name { get; }
@@ -17,13 +26,11 @@ namespace CLI.Commands.Template
         {
             try
             {
-                var ps = new ProjectService();
-                var project = ps.LoadProject(Environment.CurrentDirectory);
-                var rs = new RegistryService();
+                var project = _projectService.LoadProject(Environment.CurrentDirectory);
                 
                 // clone the template into the cache folder
-                var template = rs.InstallTemplate(Name);
-                ps.AddTemplate(project, template);
+                var template = _registryService.InstallTemplate(Name);
+                _projectService.AddTemplate(project, template);
 
                 return 0;
                 // var ts = new TemplateService(project);

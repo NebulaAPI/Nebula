@@ -13,36 +13,30 @@ namespace Nebula.SDK.Renderers
     {
         private const int TAB_SIZE = 4;
         
-        protected int IndentLevel { get; set; }
-
-        protected List<string> CurrentOutput { get; set; }
-
-        protected AbstractCompiler Compiler { get; set; }
-
-        protected ApiConfig ActiveConfig { get; set; }
-
-        protected IRenderPlugin RenderPlugin { get; set; }
-
-        protected TemplateMeta Meta { get; set; }
-
-        protected Project Project { get; set; }
+        protected int _indentLevel { get; set; }
+        protected List<string> _currentOutput { get; set; }
+        protected AbstractCompiler _compiler { get; set; }
+        protected ApiConfig _activeConfig { get; set; }
+        protected IRendererExtension _rendererExtension { get; set; }
+        protected TemplateMeta _meta { get; set; }
+        protected Project _project { get; set; }
         
-        protected AbstractRenderer(AbstractCompiler compiler, IRenderPlugin renderPlugin)
+        protected AbstractRenderer(AbstractCompiler compiler, IRendererExtension rendererExtension)
         {
-            IndentLevel = 0;
-            Compiler = compiler;
-            RenderPlugin = renderPlugin;
+            _indentLevel = 0;
+            _compiler = compiler;
+            _rendererExtension = rendererExtension;
         }
 
         public void Render(List<OutputFile> outputFiles, Project project, TemplateMeta meta)
         {
-            Project = project;
-            Meta = meta;
+            _project = project;
+            _meta = meta;
             
             foreach (var file in outputFiles)
             {
                 var output = new List<string>();
-                CurrentOutput = output;
+                _currentOutput = output;
                 RenderNode(file.Root);
                 file.RawContent = output;
             }
@@ -50,16 +44,16 @@ namespace Nebula.SDK.Renderers
 
         protected string Indent()
         {
-            if (IndentLevel < 0)
+            if (_indentLevel < 0)
             {
-                IndentLevel = 0;
+                _indentLevel = 0;
             }
-            return new String(' ', IndentLevel * TAB_SIZE);
+            return new String(' ', _indentLevel * TAB_SIZE);
         }
 
         protected void WriteIndented(string text)
         {
-            CurrentOutput.Add(Indent() + text);
+            _currentOutput.Add(Indent() + text);
         }
 
         protected void WriteIndented(List<string> text)

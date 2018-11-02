@@ -14,11 +14,11 @@ namespace Nebula.Core.Services.Client
     /// </summary>
     public class PluginService
     {
-        private string PluginFolder { get; set; }
+        private string _pluginFolder;
         
         public PluginService(string pluginFolder)
         {
-            PluginFolder = pluginFolder;
+            _pluginFolder = pluginFolder;
         }
 
         public T GetPlugin<T>()

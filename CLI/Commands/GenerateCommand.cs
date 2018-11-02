@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using McMaster.Extensions.CommandLineUtils;
 using Nebula.Core.Generators;
 using Nebula.Core.Services.Client;
+using Nebula.SDK.Util;
 
 namespace CLI.Commands
 {
@@ -18,17 +19,25 @@ namespace CLI.Commands
         [Command("entity", Description = "Generate entities from provided JSON")]
         private class GenerateEntityOption
         {
+            private IProjectService _projectService;
+            private IFileUtil _fileUtil;
+
+            public GenerateEntityOption(IProjectService projectService, IFileUtil fileUtil)
+            {
+                _projectService = projectService;
+                _fileUtil = fileUtil;
+            }
+            
             [Required(ErrorMessage = "You must specify the source data")]
             [Argument(0, Description = "JSON content from which to generate entities")]
             public string Data { get; }
             private int OnExecute(IConsole console)
             {
-                var ps = new ProjectService();
                 try
                 {
-                    var project = ps.LoadProject(Environment.CurrentDirectory);
-                    var generator = new EntityGenerator(project, Data);
-                    generator.GenerateEntityFromJSON();
+                    var project = _projectService.LoadProject(Environment.CurrentDirectory);
+                    var generator = new EntityGenerator(_fileUtil);
+                    generator.GenerateEntityFromJSON(project, Data);
                     return 0;
                 }
                 catch (Exception e)

@@ -8,15 +8,22 @@ namespace CLI.Commands.Template
     [Command("list", Description = "Get list of available templates")]
     public class TemplateListCommand
     {
+        private IProjectService _projectService;
+        private ITemplateService _templateService;
+
+        public TemplateListCommand(IProjectService projectService, ITemplateService templateService)
+        {
+            _projectService = projectService;
+            _templateService = templateService;
+        }
+        
         private int OnExecute(IConsole console)
         {
             try
             {
-                var ps = new ProjectService();
-                var project = ps.LoadProject(Environment.CurrentDirectory);
-                var ts = new TemplateService(project);
+                var project = _projectService.LoadProject(Environment.CurrentDirectory);
                 
-                ts.RenderTemplateList();
+                _templateService.RenderTemplateList(project);
                 return 0;
             }
             catch (Exception e)

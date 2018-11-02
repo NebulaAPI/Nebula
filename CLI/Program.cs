@@ -14,6 +14,10 @@ using Nebula.Core.Services.API;
 using CLI.Commands;
 using Nebula.Core.Services.Client;
 using Nebula.SDK.Compiler.Abstracts;
+using Microsoft.Extensions.DependencyInjection;
+using Nebula.SDK.Util;
+using Nebula.Core.Factories;
+using Nebula.Core.Parser;
 
 namespace Nebula
 {
@@ -40,15 +44,27 @@ namespace Nebula
             
             NebulaConfig.TemplateManifestRepo = configuration.GetSection("TemplateManifest").Value;
             NebulaConfig.ProjectSkeletonRepo = configuration.GetSection("ProjectSkeleton").Value;
-
-            // var client = new RegistryApiClient();
-            // var plugin = client.GetPlugin("plugin-language-php");
-            // Console.WriteLine(plugin.Name);
-            var rs = new RegistryService();
-            var plugins = rs.LoadAllPlugins();
-            var types = rs.SearchForType<AbstractCompiler>(plugins);
             
-            CommandLineApplication.Execute<Nebula>(args);
+            var app = new CommandLineApplication<Nebula>();
+
+            var services = new ServiceCollection()
+                .AddTransient<IRegistryService, RegistryService>()
+                .AddTransient<IProjectService, ProjectService>()
+                .AddTransient<ITemplateService, TemplateService>()
+                .AddTransient<ICompilationService, CompilationService>()
+                .AddSingleton<IProjectValidator, ProjectValidator>()
+                .AddSingleton<IFileUtil, FileUtil>()
+                .AddSingleton<IGitService, GitService>()
+                .AddSingleton<ICompilerFactory, CompilerFactory>()
+                .AddTransient(typeof(RegistryApiClient))
+                .AddTransient(typeof(ConsoleTable))
+                .BuildServiceProvider();
+            
+            app.Conventions
+                .UseDefaultConventions()
+                .UseConstructorInjection(services);
+                
+            app.Execute(args);
         }
 
         private static void PrepLocalDirectories(string appDataFolder)
