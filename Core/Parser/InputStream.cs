@@ -2,17 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Nebula.Parser
+namespace Nebula.Core.Parser
 {
     public class InputStream
     {
         public int Pos { get; set; }
         public int Line { get; set; }
         public int Col { get; set; }
-        private string Input { get; set; }
-        private char[] InputArray { get; set; }
         public string[] Lines { get; set; }
         public string FileName { get; set; }
+
+        private string _input;
+        private char[] _inputArray;
 
         public InputStream()
         {
@@ -23,16 +24,16 @@ namespace Nebula.Parser
 
         public InputStream(string input) : this()
         {
-            Input = input;
-            InputArray = input.ToCharArray();
+            _input = input;
+            _inputArray = input.ToCharArray();
             Lines = new string[] {};
         }
 
         public InputStream(FileInfo inputFile)
         {
-            Input = inputFile.OpenText().ReadToEnd();
-            InputArray = Input.ToCharArray();
-            Lines = Input.Split('\n');
+            _input = inputFile.OpenText().ReadToEnd();
+            _inputArray = _input.ToCharArray();
+            Lines = _input.Split('\n');
             FileName = inputFile.FullName;
         }
 
@@ -42,7 +43,7 @@ namespace Nebula.Parser
         /// <returns></returns>
         public char Next()
         {
-            var ch = InputArray[Pos++];
+            var ch = _inputArray[Pos++];
             if (ch.ToString() == "\n")
             {
                 Line++;
@@ -71,7 +72,7 @@ namespace Nebula.Parser
         /// <returns></returns>
         public char Peek()
         {
-            return InputArray[Pos];
+            return _inputArray[Pos];
         }
 
         /// <summary>
@@ -80,7 +81,7 @@ namespace Nebula.Parser
         /// <returns></returns>
         public bool Eof()
         {
-            return Pos == Input.Length;
+            return Pos == _input.Length;
         }
 
         /// <summary>

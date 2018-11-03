@@ -2,52 +2,47 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using CLI.Models;
-using Nebula.Models;
-using Nebula.Parser;
-using Nebula.Util;
+using Nebula.Core.Parser;
+using Nebula.SDK.Objects;
+using Nebula.SDK.Util;
 using Newtonsoft.Json;
 using SharpPad;
 
-namespace Nebula.Generators
+namespace Nebula.Core.Generators
 {
     public class EntityGenerator
     {
-        public string Input { get; set; }
+        private List<Entity> _newEntities;
+        private IFileUtil _fileUtil;
 
-        public Project Project { get; set; }
-
-        private List<Entity> NewEntities { get; set; }
-
-        public EntityGenerator(Project p, string input)
+        public EntityGenerator(IFileUtil fileUtil)
         {
-            Input = input;
-            Project = p;
-            NewEntities = new List<Entity>();
+            _newEntities = new List<Entity>();
+            _fileUtil = fileUtil;
         }
 
-        public void GenerateEntityFromJSON()
+        public void GenerateEntityFromJSON(Project p, string input)
         {
-            if (File.Exists(Input))
+            if (_fileUtil.FileExists(input))
             {
-                var stream = new InputStream(new FileInfo(Input));
+                var stream = new InputStream(new FileInfo(input));
                 var tokens = new Tokenizer(stream);
                 var parser = new JsonParser(tokens);
                 var root = parser.Parse();
                 
                 FindAndPrompt(root, null);
-                WriteEntities();
+                WriteEntities(p);
             }
         }
 
-        private void WriteEntities()
+        private void WriteEntities(Project project)
         {
-            var outputFolder = Path.Combine(Project.SourceDirectory, "models");
-            foreach (var entity in NewEntities)
+            var outputFolder = Path.Combine(project.SourceDirectory, "models");
+            foreach (var entity in _newEntities)
             {
                 var outputFile = Path.Combine(outputFolder, entity.Name + ".neb");
                 var output = RenderEntity(entity);
-                File.WriteAllLines(outputFile, output);
+                _fileUtil.FileWriteAllLines(outputFile, output);
             }
         }
 
@@ -72,12 +67,12 @@ namespace Nebula.Generators
             return Console.ReadLine();
         }
 
-        private void FindAndPrompt(JsonObject obj, Entity parentEntity)
+        private void FindAndPrompt(SDK.Objects.JsonObject obj, Entity parentEntity)
         {
             if (obj.IsObject)
             {
                 var newEntity = new Entity();
-                NewEntities.Add(newEntity);
+                _newEntities.Add(newEntity);
                 
                 if (parentEntity == null)
                 {

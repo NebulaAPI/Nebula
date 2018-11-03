@@ -1,5 +1,6 @@
 using System.Linq;
-using Nebula.Parser;
+using Nebula.Core.Parser;
+using Nebula.SDK.Objects;
 using NUnit.Framework;
 
 namespace Core.Tests.Parser

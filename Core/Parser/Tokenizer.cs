@@ -1,26 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Nebula.SDK.Objects;
 
-namespace Nebula.Parser
+namespace Nebula.Core.Parser
 {
-    public enum TokenType
-    {
-        Number,
-        String,
-        Boolean,
-        Keyword,
-        Variable,
-        Punctuation,
-        Operation,
-        GetFunction,
-        PostFunction,
-        PutFunction,
-        DeleteFunction,
-        PatchFunction,
-        ReturnValue
-    }
-    
     public class Token
     {
         public string Value { get; private set; }
@@ -44,13 +28,14 @@ namespace Nebula.Parser
     
     public class Tokenizer
     {
-        private InputStream Stream { get; set; }
-        private Token CurrentToken { get; set; }
-        private List<string> Keywords { get; set; }
+        private InputStream _stream;
+        private Token _currentToken;
+        private List<string> _keywords;
+
         public Tokenizer(InputStream stream)
         {
-            Stream = stream;
-            Keywords = new List<string>
+            _stream = stream;
+            _keywords = new List<string>
             {
                 "entity", "api", "func", "exception", "export", "use", "config", "true", "false"
             };
@@ -61,17 +46,17 @@ namespace Nebula.Parser
         {
             var token = new Token(type, value);
 
-            token.Line = Stream.Line;
-            token.StartPos = Stream.Col - value.Length;
+            token.Line = _stream.Line;
+            token.StartPos = _stream.Col - value.Length;
             token.Length = value.Length;
-            token.LineText = Stream.Lines.Length >= token.Line ? Stream.Lines[token.Line] : "";
+            token.LineText = _stream.Lines.Length >= token.Line ? _stream.Lines[token.Line] : "";
 
             return token;
         }
 
         private bool IsKeyword(string s)
         {
-            return Keywords.Contains(s);
+            return _keywords.Contains(s);
         }
 
         private bool IsDigit(char c)
@@ -107,9 +92,9 @@ namespace Nebula.Parser
         private string ReadWhile(Func<char, bool> predicate)
         {
             var str = "";
-            while (!Stream.Eof() && predicate(Stream.Peek()))
+            while (!_stream.Eof() && predicate(_stream.Peek()))
             {
-                str += Stream.Next();
+                str += _stream.Next();
             }
             return str;
         }
@@ -150,8 +135,8 @@ namespace Nebula.Parser
 
         private Token ReadNegativeNumber()
         {
-            Stream.Next();
-            var ch = Stream.Peek();
+            _stream.Next();
+            var ch = _stream.Peek();
             if (IsDigit(ch))
             {
                 return ReadNumber();
@@ -163,10 +148,10 @@ namespace Nebula.Parser
         {
             var escaped = false;
             var str = "";
-            Stream.Next();
-            while (!Stream.Eof())
+            _stream.Next();
+            while (!_stream.Eof())
             {
-                var ch = Stream.Next();
+                var ch = _stream.Next();
                 if (escaped)
                 {
                     str += ch;
@@ -198,18 +183,18 @@ namespace Nebula.Parser
             ReadWhile((ch) => {
                 return ch != '\n' && ch != '\r';
             });
-            Stream.Next();
+            _stream.Next();
         }
 
         private Token ReadNext()
         {
             ReadWhile(IsWhitespace);
-            if (Stream.Eof())
+            if (_stream.Eof())
             {
                 return null;
             }
 
-            var ch = Stream.Peek();
+            var ch = _stream.Peek();
             // if (ch == '-')
             // {
             //     return ReadNegativeNumber();
@@ -238,7 +223,7 @@ namespace Nebula.Parser
 
             if (IsPunc(ch))
             {
-                return GenerateToken(TokenType.Punctuation, Stream.Next().ToString());
+                return GenerateToken(TokenType.Punctuation, _stream.Next().ToString());
             }
 
             if (IsOpChar(ch))
@@ -255,24 +240,24 @@ namespace Nebula.Parser
                     default: return GenerateToken(TokenType.Operation, opChar);
                 }
             }
-            Stream.Error("Can't handle character: " + ch);
+            _stream.Error("Can't handle character: " + ch);
             return null;
         }
 
         public Token Peek()
         {
-            if (CurrentToken != null)
+            if (_currentToken != null)
             {
-                return CurrentToken;
+                return _currentToken;
             }
-            CurrentToken = ReadNext();
-            return CurrentToken;
+            _currentToken = ReadNext();
+            return _currentToken;
         }
 
         public Token Next()
         {
-            var tok = CurrentToken;
-            CurrentToken = null;
+            var tok = _currentToken;
+            _currentToken = null;
             if (tok != null)
             {
                 return tok;
@@ -287,13 +272,13 @@ namespace Nebula.Parser
 
         public void Error(string msg)
         {
-            Stream.Error(msg);
+            _stream.Error(msg);
         }
 
         public void Reset()
         {
-            CurrentToken = null;
-            Stream.Reset();
+            _currentToken = null;
+            _stream.Reset();
         }
 
     }

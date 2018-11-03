@@ -1,4 +1,5 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/v1mttld1coaxortg/branch/develop?svg=true)](https://ci.appveyor.com/project/JasonMiesionczek/nebula/branch/develop)
+[![nuget](https://img.shields.io/nuget/v/Nebula.SDK.svg)](https://www.nuget.org/packages/Nebula.SDK/)
 
 Nebula - Web API Client Design and Generation System
 ====================================================
@@ -8,12 +9,12 @@ The output of a Nebula project is one or more client libraries that contain all 
 
 These templates can be stored in any publically accessible git repository. There is a centralized manifest service where every available template is registered. This service monitors each template that it is aware of, checking for new versions and updating the master index when changes are detected. This master index is a JSON file that Nebula looks at to see what templates are available that are compatible with the version of Nebula being used. More details about the inner workings of a template can be found in the [Templates](#templates) section below.
 
-Nebula Projects
----------------
+## Nebula Projects
+
 Nebula is designed to work within a 'project' paradigm. A project is nothing more than a specially named JSON file that describes various things about the project itself including its name, maintainer, version, and some other optional properties. See the [Getting Started](#getting-started) section below to see how to start creating Nebula projects.
 
-The Nebula Language
--------------------
+## The Nebula Language
+
 The heart of Nebula is the description language. It is with this language that the client API will be written, and Nebula will interpret and translate into the equivalent code in the target language(s) of your chosing.
 
 There are two main top-level constructs in the language: 'api' and 'entity'. Within a nebula file (a file ending with .neb), you can include any number of api and entity elements as you wish. The language has been designed to be as user-friendly as possible and as such there are very few restrictions on the directory layout and contents of a project. See [Project Structure](#project-structure) for more information. Perhaps the best way to introduce the language is to show it:
@@ -100,6 +101,22 @@ If all goes well, inside the `sample-project/out` folder there should be a folde
 * Linux
 
 ## Templates
+
+Templates determine how to structure the generated client code into a meaningful, consumable library. Every template is associated with a specific programming language. Each output language that Nebula supports is added via a plugin. Each language plugin supports additional extensions that are provided by the template itself. Because the main structure of code for a given language is fairly consistent, the only parts that can vary are the actual implementation details of the functions themselves, which is HTTP transport library specific. 
+
+Each template contains a JSON file which describes various different things about how the system should interact with that template. Once of those things includes its dependencies. The most important dependency is that of which language plugin and version to use. There could be many different plugins for the same language that each generate the code in a different way. For a template, only one language plugin can be specified.
+
+When a template is added to a project, Nebula first checks to see what its dependencies are, and if anything required is not yet installed, it will install it. Once the dependencies are satisfied, the template itself is installed into a cache directory. The template installation process includes compiling the extension code into a dynamic library which is loaded automatically during the build process.
+
+Upon building the project, each template is copied from the cache folder into the appropriate output directory and customized. 
+
+## Plugins
+
+Nebula supports adding various functionality dynamically through the use of a plugin system. Plugins are installed using the CLI tool and are available globally to any project on that workstation. When a plugin is installed, its code is downloaded onto the workstation and compiled into a dynamic library that can be loaded on demand. Creating a plugin requires the installation of the .NET Core SDK. After creating a classlib project, all that is needed is to add the NebulaSDK NuGet package. This includes all of the necessary classes and interfaces for writing a plugin.
+
+## Registry
+
+The Registry is the online service that hosts templates and plugins. It exposes a public API for interacting with the service and has a web front-end for ease of use.
 
 ## Project Structure
 

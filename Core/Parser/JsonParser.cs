@@ -1,30 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using Nebula.SDK.Objects;
 using SharpPad;
 
-namespace Nebula.Parser
+namespace Nebula.Core.Parser
 {
-    public class JsonObject : NamedNode
-    {
-        public List<JsonObject> Children { get; set; }
-
-        public dynamic Value { get; set; }
-
-        public bool IsObject { get; set; }
-        
-        public bool IsArray { get; set; }
-        
-        public bool IsValue { get; set; }
-        
-        public JsonObject() : base("jobj")
-        {
-            Children = new List<JsonObject>();
-            IsArray = false;
-            IsObject = false;
-            IsValue = false;
-        }
-    }
-
     public class JsonParser : Parser
     {
         public JsonParser(Tokenizer tokenizer) : base(tokenizer)
@@ -34,7 +14,7 @@ namespace Nebula.Parser
 
         public JsonObject Parse()
         {
-            while (!Tokenizer.Eof())
+            while (!_tokenizer.Eof())
             {
                 if (IsObject())
                 {
@@ -75,7 +55,7 @@ namespace Nebula.Parser
             }
             obj.Name = token.Value;
             obj.IsObject = true;
-            Tokenizer.Next();
+            _tokenizer.Next();
             SkipPunc(':');
 
             // here we check what the next thing is. If its a value, set the value of this object
@@ -132,17 +112,17 @@ namespace Nebula.Parser
         {
             if (IsOp("-") != null)
             {
-                Tokenizer.Next();
+                _tokenizer.Next();
                 var nextToken = IsValue();
                 if (nextToken != null)
                 {
-                    Tokenizer.Next();
+                    _tokenizer.Next();
                     return "-" + nextToken.Value;
                 }
 
                 Unexpected();
             }
-            Tokenizer.Next();
+            _tokenizer.Next();
             
             if (valueToken.Value == "true")
             {
@@ -159,7 +139,7 @@ namespace Nebula.Parser
 
         private Token IsValue()
         {
-            var token = Tokenizer.Peek();
+            var token = _tokenizer.Peek();
             if (token == null)
             {
                 return null;

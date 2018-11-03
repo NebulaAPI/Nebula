@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using Nebula.SDK.Objects;
 
-namespace Nebula.Parser
+namespace Nebula.Core.Parser
 {
     public class NebulaParser : Parser
     {
@@ -17,7 +18,7 @@ namespace Nebula.Parser
         public ModuleNode Parse(string moduleName)
         {
             var nodes = new List<AstNode>();
-            while (!Tokenizer.Eof())
+            while (!_tokenizer.Eof())
             {
                 var obj = ParseObject();
                 if (obj != null)
@@ -34,7 +35,7 @@ namespace Nebula.Parser
             var apiNodes = new List<AstNode>();
             
             SkipKeyword("api");
-            var token = Tokenizer.Next();
+            var token = _tokenizer.Next();
             var apiName = token.Value;
             SkipPunc('{');
             while (!IsPunc('}'))
@@ -62,9 +63,9 @@ namespace Nebula.Parser
 
         private KeyValueNode ParseKeyValue()
         {
-            var keyToken = Tokenizer.Next();
+            var keyToken = _tokenizer.Next();
             SkipOp("=");
-            var valueToken = Tokenizer.Next();
+            var valueToken = _tokenizer.Next();
             return new KeyValueNode(keyToken.Value, valueToken.Value);
         }
 
@@ -77,7 +78,7 @@ namespace Nebula.Parser
 
         private ArgumentNode ParseFunctionArgument()
         {
-            var argumentName = Tokenizer.Next();
+            var argumentName = _tokenizer.Next();
             SkipPunc(':');
             var argumentType = ParseDataType();
             return new ArgumentNode(argumentName.Value, argumentType);
@@ -85,11 +86,11 @@ namespace Nebula.Parser
 
         private DataTypeNode ParseDataType()
         {
-            var typeName = Tokenizer.Next();
+            var typeName = _tokenizer.Next();
             if (IsPunc('['))
             {
                 SkipPunc('[');
-                var genericType = Tokenizer.Next();
+                var genericType = _tokenizer.Next();
                 if (IsPunc(']'))
                 {
                     SkipPunc(']');
@@ -106,7 +107,7 @@ namespace Nebula.Parser
 
         private Token IsReturnTypeOp(string op)
         {
-            var token = Tokenizer.Peek();
+            var token = _tokenizer.Peek();
             if (token == null)
             {
                 return null;
@@ -120,7 +121,7 @@ namespace Nebula.Parser
 
         private Token IsHttpOp(string op)
         {
-            var token = Tokenizer.Peek();
+            var token = _tokenizer.Peek();
             if (token == null)
             {
                 return null;
@@ -142,16 +143,16 @@ namespace Nebula.Parser
         private AstNode ParseFunction()
         {
             SkipKeyword("func");
-            var functionName = Tokenizer.Next().Value;
+            var functionName = _tokenizer.Next().Value;
             var arguments = Delimited('(', ')', ',', ParseFunctionArgument);
             var httpOp = IsHttpOp(null);
             if (httpOp != null)
             {
-                Tokenizer.Next();
-                var url = Tokenizer.Next();
+                _tokenizer.Next();
+                var url = _tokenizer.Next();
                 if (IsReturnTypeOp(null) != null)
                 {
-                    Tokenizer.Next();
+                    _tokenizer.Next();
                     var returnType = ParseDataType();
                     var docs = Delimited<KeyValueNode>('{', '}', ',', ParseKeyValue);
                     return new FunctionNode(functionName, arguments, httpOp.Type, url.Value, returnType, docs);
@@ -172,7 +173,7 @@ namespace Nebula.Parser
         private AstNode ParseEntity()
         {
             SkipKeyword("entity");
-            var entityName = Tokenizer.Next();
+            var entityName = _tokenizer.Next();
             var fields = Delimited('{', '}', ',', ParseFunctionArgument);
             return new EntityNode(entityName.Value, fields);
         }
