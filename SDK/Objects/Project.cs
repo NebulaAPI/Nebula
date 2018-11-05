@@ -15,13 +15,9 @@ namespace Nebula.SDK.Objects
         [JsonIgnore]
         public string SourceDirectory { get; set; }
         [JsonIgnore]
-        public string TemplateDirectory { get; set; }
-        [JsonIgnore]
         public string ProjectDirectory { get; set; }
         [JsonIgnore]
         public string OutputDirectory { get; set; }
-        [JsonIgnore]
-        public string ManifestDirectory { get; set; }
 
         public Project()
         {

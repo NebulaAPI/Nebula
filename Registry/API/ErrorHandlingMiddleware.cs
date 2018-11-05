@@ -36,7 +36,7 @@ namespace API
             //else if (exception is MyUnauthorizedException) code = HttpStatusCode.Unauthorized;
             //else if (exception is MyException)             code = HttpStatusCode.BadRequest;
 
-            var result = JsonConvert.SerializeObject(new { error = exception.Message });
+            var result = JsonConvert.SerializeObject(new { error = exception.Message, stack = exception.StackTrace });
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)code;
             return context.Response.WriteAsync(result);

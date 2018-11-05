@@ -7,12 +7,13 @@ using Nebula.SDK.Interfaces;
 using System.Linq;
 using System.Reflection;
 using System;
+using Nebula.SDK.Objects.Shared;
 
 namespace Nebula.Core.Factories
 {
     public interface ICompilerFactory
     {
-        AbstractCompiler Get(string language, string languagePlugin);
+        AbstractCompiler Get(LanguagePlugin languagePlugin);
     }
     
     /// <summary>
@@ -33,17 +34,17 @@ namespace Nebula.Core.Factories
         /// <param name="language">The language to use</param>
         /// <param name="languagePlugin">The specific language plugin to use</param>
         /// <returns></returns>
-        public AbstractCompiler Get(string language, string languagePlugin)
+        public AbstractCompiler Get(LanguagePlugin languagePlugin)
         {
-            var pluginDll = _languagePlugins.Keys.FirstOrDefault(a => a.GetName().Name == languagePlugin);
+            var pluginDll = _languagePlugins.Keys.FirstOrDefault(a => a.GetName().Name == languagePlugin.Name);
             if (pluginDll == null)
             {
                 throw new Exception($"No plugins found that match {languagePlugin}");
             }
-            var compiler = _languagePlugins[pluginDll].FirstOrDefault(p => p.GetLanguageName() == language);
+            var compiler = _languagePlugins[pluginDll].FirstOrDefault();
             if (compiler == null)
             {
-                throw new Exception($"No plugin found that provides a compiler for {language}");
+                throw new Exception($"No plugin found that provides a compiler for {languagePlugin.Name}");
             }
 
             return compiler.GetCompiler();

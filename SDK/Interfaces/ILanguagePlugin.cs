@@ -1,4 +1,5 @@
 using Nebula.SDK.Compiler.Abstracts;
+using Nebula.SDK.Plugin;
 using Nebula.SDK.Renderers;
 
 namespace Nebula.SDK.Interfaces
@@ -7,6 +8,6 @@ namespace Nebula.SDK.Interfaces
     {
         string GetLanguageName();
         AbstractCompiler GetCompiler();
-        AbstractRenderer GetRenderer();
+        AbstractRenderer GetRenderer(AbstractCompiler compiler, IRendererExtension rendererExtension);
     }
 }

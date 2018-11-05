@@ -15,6 +15,7 @@ using Nebula.Core.Services.Client;
 using Nebula.SDK.Interfaces;
 using Nebula.Core.Factories;
 using Nebula.SDK.Objects.Client;
+using Nebula.Core.Helpers;
 
 namespace Nebula.Core.Services.Client
 {
@@ -45,7 +46,9 @@ namespace Nebula.Core.Services.Client
         private IFileUtil _fileUtil;
         private IGitService _gitService;
         private ICompilerFactory _compilerFactory;
+        private IRendererFactory _rendererFactory;
         private IProjectValidator _projectValidator;
+        private ICompilationService _compilationService;
         
         public ProjectService(
             IRegistryService registryService,
@@ -53,14 +56,18 @@ namespace Nebula.Core.Services.Client
             IFileUtil fileUtil,
             IGitService gitService,
             ICompilerFactory compilerFactory,
-            IProjectValidator projectValidator
+            IRendererFactory rendererFactory,
+            IProjectValidator projectValidator,
+            ICompilationService compilationService
         ) {
             _registryService = registryService;
             _templateService = templateService;
             _fileUtil = fileUtil;
             _gitService = gitService;
             _compilerFactory = compilerFactory;
+            _rendererFactory = rendererFactory;
             _projectValidator = projectValidator;
+            _compilationService = compilationService;
         }
         
         public Project CreateProject(string name, string location)
@@ -139,9 +146,7 @@ namespace Nebula.Core.Services.Client
             }
             var project = JsonConvert.DeserializeObject<Project>(_fileUtil.FileReadAllText(projectFile));
             project.SourceDirectory = Path.Combine(location, "src");
-            project.TemplateDirectory = Path.Combine(location, "templates");
             project.OutputDirectory = Path.Combine(location, "out");
-            project.ManifestDirectory = Path.Combine(location, "manifest");
             project.ProjectDirectory = location;
             if (!_fileUtil.DirectoryExists(project.SourceDirectory))
             {
@@ -160,6 +165,10 @@ namespace Nebula.Core.Services.Client
 
         public void AddTemplate(Project project, Template template)
         {
+            if (project.Templates.ContainsKey(template.Name))
+            {
+                return;
+            }
             project.Templates.Add(template.Name, template.Versions.FirstOrDefault()?.Version); // FIXME: figure out the most recent version
             SaveProject(project);
         }
@@ -185,33 +194,35 @@ namespace Nebula.Core.Services.Client
 
             //var cf = new CompilerFactory(_registryService);
 
-            // foreach (var template in p.Templates)
-            // {
-            //     var t = ts.GetTemplate(template) ?? throw new Exception("Could not find template data for template: " + template);
-                
-            //     var templateMeta = ts.GetTemplateMeta(template);
+            foreach (var templateName in p.Templates.Keys)
+            {
+                var templateMeta = _templateService.GetTemplateMeta(p, templateName);
+                var templateExtensionFolder = 
+                    Path.Combine(
+                        NebulaConfig.TemplateDirectory, 
+                        templateMeta.TemplateData.Name,
+                        templateMeta.Configuration.ExtensionLocation.Trim(Path.DirectorySeparatorChar)
+                    );
 
-            //     var templatePluginFileFolder = Path.Combine(p.TemplateDirectory, t.Name, templateMeta.PluginLocation.Trim(Path.DirectorySeparatorChar));
-            //     var pluginFiles = new List<string>();
-            //     FileUtil.GenerateFileList(templatePluginFileFolder, pluginFiles, ".cs", (f) => f.Replace(CurrentProject.SourceDirectory + Path.DirectorySeparatorChar, ""));
+                var extensionFiles = new List<string>();
+                _fileUtil.GenerateFileList(templateExtensionFolder, extensionFiles, ".cs", (f) => f);
+                var templateExtension = _compilationService.CompileInMemory(templateName, extensionFiles.ToArray());
+                var compilerExtension = templateExtension.SearchForType<ICompilerExtension>();
+                var rendererExtension = templateExtension.SearchForType<IRendererExtension>();
 
-            //     var pluginService = new PluginService("");
-            //     var renderPlugin = pluginService.GetPlugin<IRenderPlugin>();
-            //     var compilerPlugin = pluginService.GetPlugin<ICompilerPlugin>();
+                var compiler = _compilerFactory.Get(templateMeta.LanguagePlugin);
+                compiler.Init(p, projectNode, templateMeta, compilerExtension);
+                var renderer = _rendererFactory.Get(templateMeta.LanguagePlugin, compiler, rendererExtension);
+                var outputFiles = compiler.Compile();
 
-            //     var compiler = CompilerFactory.Get(t.Language);
-            //     compiler.Init(p, projectNode, templateMeta, compilerPlugin);
-            //     var outputFiles = compiler.Compile();
-            //     var renderer = RendererFactory.Get(t.Language, compiler, renderPlugin);
-                
-            //     var destinationDirectory = PrepareOutputDir(p, templateMeta);
-            //     renderer.Render(outputFiles, p, templateMeta);
-            //     foreach (var file in outputFiles)
-            //     {
-            //         var outputFileName = Path.Combine(destinationDirectory, templateMeta.SourceFolder, file.FileName);
-            //         File.WriteAllText(outputFileName, file.GetFileContent());
-            //     }
-            // }
+                var destinationDirectory = PrepareOutputDir(p, templateMeta);
+                renderer.Render(outputFiles, p, templateMeta);
+                foreach (var file in outputFiles)
+                {
+                    var outputFileName = Path.Combine(destinationDirectory, templateMeta.Configuration.SourceFolder, file.FileName);
+                    _fileUtil.FileWriteAllText(outputFileName, file.GetFileContent());
+                }
+            }
         }
 
         private string PrepareOutputDir(Project project, TemplateMeta templateMeta)
@@ -219,7 +230,7 @@ namespace Nebula.Core.Services.Client
             // here we need to copy the template folder to the output directory
             // and customize the template
             var templateName = templateMeta.TemplateData.Name;
-            var sourceTemplatePath = Path.Combine(project.TemplateDirectory, templateName, templateMeta.TemplateLocation.Trim(Path.DirectorySeparatorChar));
+            var sourceTemplatePath = Path.Combine(NebulaConfig.TemplateDirectory, templateName, templateMeta.Configuration.TemplateLocation.Trim(Path.DirectorySeparatorChar));
             var destTemplatePath = Path.Combine(project.OutputDirectory, $"{project.Name}-{templateName}");
 
             if (_fileUtil.DirectoryExists(destTemplatePath))

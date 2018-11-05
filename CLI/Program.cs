@@ -56,6 +56,7 @@ namespace Nebula
                 .AddSingleton<IFileUtil, FileUtil>()
                 .AddSingleton<IGitService, GitService>()
                 .AddSingleton<ICompilerFactory, CompilerFactory>()
+                .AddSingleton<IRendererFactory, RendererFactory>()
                 .AddTransient(typeof(RegistryApiClient))
                 .AddTransient(typeof(ConsoleTable))
                 .BuildServiceProvider();

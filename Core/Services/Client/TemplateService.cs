@@ -49,7 +49,7 @@ namespace Nebula.Core.Services.Client
         {
             var manifestData = LoadLocalManifest();
             var template = _registryService.InstallTemplate(name);
-            manifestData.Templates.Add(template);
+            manifestData.AddTemplate(template);
             SaveLocalManifest(manifestData);
 
             return template;
@@ -111,7 +111,7 @@ namespace Nebula.Core.Services.Client
             var template = templates.FirstOrDefault(t => t.Name == templateName);
             if (template != null && project.Templates.Keys.Contains(templateName))
             {
-                var templatePath = Path.Combine(project.TemplateDirectory, templateName);
+                var templatePath = Path.Combine(NebulaConfig.TemplateDirectory, templateName);
                 if (!_fileUtil.DirectoryExists(templatePath))
                 {
                     throw new System.Exception("Could not find template directory: " + templatePath);

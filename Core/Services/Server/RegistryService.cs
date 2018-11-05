@@ -62,6 +62,7 @@ namespace Nebula.Core.Services.Server
                     LastUpdated = DateTime.Now,
                     Published = DateTime.Now,
                     UploadedBy = User,
+                    UploadedById = User.Id,
                     RepositoryUrl = repoUrl
                 };
 

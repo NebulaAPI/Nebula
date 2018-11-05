@@ -71,7 +71,7 @@ namespace Nebula.Core.Services.Client
         /// Load the compiled dll files for all currently installed plugins
         /// </summary>
         /// <returns>List of Assembly objects</returns>
-        List<Assembly> LoadAllPlugins();
+        List<Assembly> LoadAllPlugins(bool force = false);
 
         /// <summary>
         /// Search the provided list of assemblies for the specified type.
@@ -100,6 +100,7 @@ namespace Nebula.Core.Services.Client
         private RegistryApiClient _client;
         private ICompilationService _compilationService;
         private IFileUtil _fileUtil;
+        private List<Assembly> _plugins;
 
         /// <summary>
         /// 
@@ -171,7 +172,14 @@ namespace Nebula.Core.Services.Client
             var templateDir = Path.Combine(NebulaConfig.TemplateDirectory, template.Name);
             Repository.Clone(template.RepositoryUrl, templateDir);
 
-            InstallPlugin(template.LanguagePlugin.Name);
+            try
+            {
+                InstallPlugin(template.LanguagePlugin.Name);
+            }
+            catch (AlreadyInstalledException)
+            {
+
+            }
 
             return template;
         }
@@ -191,22 +199,36 @@ namespace Nebula.Core.Services.Client
             return _compilationService.CompileLocal(meta.Name, assemblyFile, pluginFiles.ToArray());
         }
         
-        public List<Assembly> LoadAllPlugins()
+        public List<Assembly> LoadAllPlugins(bool force = false)
         {
-            var output = new List<Assembly>();
+            if (_plugins != null && _plugins.Count > 0 && !force)
+            {
+                return _plugins;
+            }
+            _plugins = new List<Assembly>();
             var plugins = GetInstalledPlugins();
             foreach (var plugin in plugins)
             {   
                 var dllFile = Path.Combine(NebulaConfig.PluginDirectory, plugin.Name, $"{plugin.Name}.dll");
                 if (!_fileUtil.FileExists(dllFile))
                 {
-                    output.Add(Compile(plugin.Name));
+                    _plugins.Add(Compile(plugin.Name));
                     continue;
                 }
-                output.Add(Assembly.LoadFile(dllFile));
+
+                try
+                {
+                    // Loading the assembly can fail for a variety of reasons. If it does, try to recompile it
+                    _plugins.Add(Assembly.LoadFile(dllFile));
+                }
+                catch (Exception)
+                {
+                    _plugins.Add(Compile(plugin.Name));
+                }
+                
             }
 
-            return output;
+            return _plugins;
         }
         
         public Dictionary<Assembly, List<T>> SearchForType<T>(List<Assembly> assemblies)

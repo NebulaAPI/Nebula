@@ -36,6 +36,7 @@ namespace API.Controllers
                 .Include(p => p.Versions)
                     .ThenInclude(version => version.Dependencies)
                 .Include(p => p.UploadedBy)
+                .Include(p => p.LanguagePlugin)
                 .FirstOrDefault(p => p.Name == name);
         }
 
@@ -50,7 +51,7 @@ namespace API.Controllers
         [HttpPost]
         public Template Post([FromBody] string repoUrl)
         {
-            var user = _nebulaContext.Users.FirstOrDefault(u => u.Username == User.Identity.Name);
+            var user = _nebulaContext.Users.FirstOrDefault(u => u.Id == Guid.Parse(User.Identity.Name));
             if (user != null)
             {
                 _registryService.User = user;

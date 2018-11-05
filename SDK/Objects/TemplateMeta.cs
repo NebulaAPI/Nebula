@@ -10,7 +10,7 @@ namespace Nebula.SDK.Objects
         public string ClientLocation { get; set; }
         public string SourceFolder { get; set; }
         public string ExtensionLocation { get; set; }
-        public string PluginLocation { get; set; }
+        public string TemplateLocation { get; set; }
         public Dictionary<string, string> FilesToRename { get; set; }
 
         public TemplateConfiguration()

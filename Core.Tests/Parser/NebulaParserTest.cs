@@ -8,13 +8,13 @@ namespace Core.Tests.Parser
     [TestFixture]
     public class NebulaParserTest
     {
-        private const string SIMPLE_ENTITY = @"
+        private const string SimpleEntity = @"
         entity Device {
             name: string
         }
         ";
 
-        private const string COMPLEX_ENTITIES = @"
+        private const string ComplexEntities = @"
         entity ComplexDevice {
             name: string,
             id: integer,
@@ -28,7 +28,7 @@ namespace Core.Tests.Parser
         }
         ";
         
-        private const string SIMPLE_API = @"
+        private const string SimpleApi = @"
         api SimpleApi {
             config {
                 host = ""http://somehost.com"",
@@ -43,7 +43,7 @@ namespace Core.Tests.Parser
         }
         ";
 
-        private const string COMPLEX_API = @"
+        private const string ComplexApi = @"
         api ComplexApi {
             config {
                 host =""http://somehost.com"",
@@ -79,7 +79,7 @@ namespace Core.Tests.Parser
         [Test]
         public void ComplexApiTest()
         {
-            var stream = new InputStream(COMPLEX_API);
+            var stream = new InputStream(ComplexApi);
             var tokenizer = new Tokenizer(stream);
             var parser = new NebulaParser(tokenizer);
             var result = parser.Parse("sampleModule");
@@ -97,7 +97,7 @@ namespace Core.Tests.Parser
         [Test]
         public void ComplexEntityTest()
         {
-            var stream = new InputStream(COMPLEX_ENTITIES);
+            var stream = new InputStream(ComplexEntities);
             var tokenizer = new Tokenizer(stream);
             var parser = new NebulaParser(tokenizer);
             var result = parser.Parse("sampleModule");
@@ -115,7 +115,7 @@ namespace Core.Tests.Parser
         [Test]
         public void SimpleApiTest()
         {
-            var stream = new InputStream(SIMPLE_API);
+            var stream = new InputStream(SimpleApi);
             var tokenizer = new Tokenizer(stream);
             var parser = new NebulaParser(tokenizer);
             var result = parser.Parse("sampleModule");
@@ -145,7 +145,7 @@ namespace Core.Tests.Parser
         [Test]
         public void SimpleEntityTest()
         {
-            var stream = new InputStream(SIMPLE_ENTITY);
+            var stream = new InputStream(SimpleEntity);
             var tokenizer = new Tokenizer(stream);
             var parser = new NebulaParser(tokenizer);
             var result = parser.Parse("sampleModule");
@@ -164,7 +164,7 @@ namespace Core.Tests.Parser
         [Test]
         public void EntityFieldTest()
         {
-            var stream = new InputStream(SIMPLE_ENTITY);
+            var stream = new InputStream(SimpleEntity);
             var tokenizer = new Tokenizer(stream);
             var parser = new NebulaParser(tokenizer);
             var result = parser.Parse("sampleModule");
