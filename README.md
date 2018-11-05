@@ -1,4 +1,5 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/v1mttld1coaxortg/branch/develop?svg=true)](https://ci.appveyor.com/project/JasonMiesionczek/nebula/branch/develop)
+[![nuget](https://img.shields.io/nuget/v/Nebula.SDK.svg)](https://www.nuget.org/packages/Nebula.SDK/)
 
 Nebula - Web API Client Design and Generation System
 ====================================================
